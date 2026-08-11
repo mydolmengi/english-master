@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>영어 마스타</title>
+<title>영어 마스터</title>
 <style>
 :root{--blue:#2563eb;--bg:#f5f7fb;--line:#e5e7eb;--text:#172033;--muted:#667085}
 *{box-sizing:border-box}
@@ -1971,5 +1971,75 @@ parse("");
 APP_SCREENS.forEach(x=>$(x).classList.add("hidden"));
 })();
 </script>
+
+<script id="mobile-enter-two-step-fix">
+(function () {
+  function isAnswerInput(el) {
+    if (!el || !el.matches) return false;
+    if (!el.matches('input, textarea')) return false;
+    return !!el.closest(
+      '.question, .word-card, .exercise, [class*="question"], [class*="word-card"], [class*="exercise"], form'
+    );
+  }
+
+  function getVisibleButton(labels) {
+    const buttons = Array.from(document.querySelectorAll('button'));
+    return buttons.find(btn => {
+      if (!btn.offsetParent) return false;
+      const text = (btn.textContent || '').replace(/\s+/g, '');
+      return labels.some(label => text === label || text.includes(label));
+    }) || null;
+  }
+
+  function keepFocus(input) {
+    requestAnimationFrame(() => {
+      try {
+        input.focus({ preventScroll: true });
+        const len = input.value.length;
+        if (typeof input.setSelectionRange === 'function') {
+          input.setSelectionRange(len, len);
+        }
+      } catch (_) {
+        input.focus();
+      }
+    });
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' || e.isComposing) return;
+
+    const input = document.activeElement;
+    if (!isAnswerInput(input)) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    // If the current question has not been checked yet, Enter acts as "정답 확인".
+    const checkButton = getVisibleButton(['정답확인', '정답 확인']);
+    if (checkButton) {
+      checkButton.click();
+      keepFocus(input);
+      return;
+    }
+
+    // Once grading is complete, the next Enter acts as "다음 문제".
+    const nextButton = getVisibleButton(['다음문제', '다음 문제']);
+    if (nextButton) {
+      nextButton.click();
+      requestAnimationFrame(() => {
+        const newInput =
+          document.activeElement?.matches?.('input, textarea')
+            ? document.activeElement
+            : document.querySelector('input:focus, textarea:focus') ||
+              document.querySelector(
+                '.question input, .word-card input, .exercise input, [class*="question"] input, [class*="word-card"] input, [class*="exercise"] input'
+              );
+        if (newInput) keepFocus(newInput);
+      });
+    }
+  }, true);
+})();
+</script>
+
 </body>
 </html>
