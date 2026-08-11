@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>영어 마스타</title>
+<title>영어 마스터</title>
 <style>
 :root{--blue:#2563eb;--bg:#f5f7fb;--line:#e5e7eb;--text:#172033;--muted:#667085}
 *{box-sizing:border-box}
@@ -1623,7 +1623,33 @@ html+=`<div class="row" style="margin-top:10px">
 $("wordQuiz").innerHTML=html;
 
 $("checkWord").addEventListener("click",checkWord);
-$("nextWord").addEventListener("click",newWord);
+$("nextWord").addEventListener("click",function(){
+  const savedX=window.scrollX||0;
+  const savedY=window.scrollY||window.pageYOffset||0;
+
+  newWord();
+
+  const newInput=document.getElementById("wordAnswer");
+  if(newInput){
+    try{
+      newInput.focus({preventScroll:true});
+      const len=newInput.value.length;
+      newInput.setSelectionRange(len,len);
+    }catch(_){
+      newInput.focus();
+    }
+  }
+
+  // Restore immediately, then once more after layout settles.
+  window.scrollTo(savedX,savedY);
+  requestAnimationFrame(function(){
+    window.scrollTo(savedX,savedY);
+    const input=document.getElementById("wordAnswer");
+    if(input){
+      try{ input.focus({preventScroll:true}); }catch(_){ input.focus(); }
+    }
+  });
+});
 
 }
 
@@ -2094,49 +2120,71 @@ document.addEventListener("keydown", function(e){
 
   const stressCheck=(check.textContent||"").replace(/\s/g,"").includes("강세정답확인");
 
-  /* 현재 위치를 먼저 저장합니다.
-     다음 문제를 렌더링하면서 브라우저가 위로 이동해도 원래 시험 위치를 유지합니다. */
-  const quizScrollY = window.scrollY || window.pageYOffset || 0;
-  const goingToNext = !!(feedback && !feedback.classList.contains("hidden"));
-
   if(stressStage && !stressStage.classList.contains("hidden") && stressCheck){
     check.click();
-  }else if(goingToNext){
+  }else if(feedback && !feedback.classList.contains("hidden")){
     if(next) next.click();
     else if((check.textContent||"").replace(/\s/g,"").includes("다음문제")) check.click();
   }else{
     check.click();
   }
 
-  /* 새 문제가 그려진 뒤 스크롤 위치를 강제로 복원하고,
-     입력창 포커스는 preventScroll로 유지합니다. */
-  if(goingToNext){
-    setTimeout(function(){
-      window.scrollTo({top:quizScrollY, left:window.scrollX || 0, behavior:"instant"});
-      requestAnimationFrame(function(){
-        window.scrollTo({top:quizScrollY, left:window.scrollX || 0, behavior:"instant"});
-        const newInput=document.getElementById("wordAnswer");
-        if(!newInput) return;
-        try{
-          newInput.focus({preventScroll:true});
-          const len=newInput.value.length;
-          newInput.setSelectionRange(len,len);
-        }catch(_){ newInput.focus(); }
-      });
-    },60);
-  }else{
-    setTimeout(function(){
-      const newInput=document.getElementById("wordAnswer");
-      if(!newInput) return;
-      try{
-        newInput.focus({preventScroll:true});
-        const len=newInput.value.length;
-        newInput.setSelectionRange(len,len);
-      }catch(_){ newInput.focus(); }
-    },50);
-  }
+  setTimeout(function(){
+    const newInput=document.getElementById("wordAnswer");
+    if(!newInput) return;
+    try{
+      newInput.focus({preventScroll:true});
+      const len=newInput.value.length;
+      newInput.setSelectionRange(len,len);
+    }catch(_){ newInput.focus(); }
+  },50);
 }, true);
 
+</script>
+
+
+<script id="mobile-word-quiz-position-final">
+(function(){
+  document.addEventListener("keydown",function(e){
+    if((e.key!=="Enter" && e.keyCode!==13) || e.isComposing) return;
+    const input=e.target;
+    if(!input || input.id!=="wordAnswer") return;
+
+    const check=document.getElementById("checkWord");
+    const next=document.getElementById("nextWord");
+    const feedback=document.getElementById("wordFeedback");
+    const stressStage=document.getElementById("stressStage");
+    if(!check) return;
+
+    const stressCheck=(check.textContent||"").replace(/\s/g,"").includes("강세정답확인");
+    const afterAnswer=!!(feedback && !feedback.classList.contains("hidden"));
+
+    e.preventDefault();
+    e.stopImmediatePropagation();
+
+    if(stressStage && !stressStage.classList.contains("hidden") && stressCheck){
+      check.click();
+      requestAnimationFrame(function(){
+        const i=document.getElementById("wordAnswer");
+        if(i){ try{i.focus({preventScroll:true});}catch(_){i.focus();} }
+      });
+      return;
+    }
+
+    if(afterAnswer && next){
+      // This click happens directly inside the keyboard's user event.
+      // The nextWord click handler above performs synchronous focus().
+      next.click();
+      return;
+    }
+
+    check.click();
+    requestAnimationFrame(function(){
+      const i=document.getElementById("wordAnswer");
+      if(i){ try{i.focus({preventScroll:true});}catch(_){i.focus();} }
+    });
+  },true);
+})();
 </script>
 
 </body>
