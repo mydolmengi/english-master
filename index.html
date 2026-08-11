@@ -464,7 +464,7 @@ input:focus{
 <div id="stressArea" class="hidden" style="margin-top:18px">
 <div class="notice">강세 연습할 본문 번호를 선택하세요. 번호를 누르면 바로 연습이 시작됩니다.</div>
 <div class="row" style="margin-top:12px">
-  <button type="button" id="stressTodayWrongBtn" class="secondary">오늘의 오답노트</button>
+  <button type="button" id="stressTodayWrongBtn" class="secondary">오늘의 오답</button>
   <button type="button" id="clearStressTodayWrongBtn" class="secondary" onclick="clearStressTodayWrong()">오늘의 오답노트 비우기</button>
 </div>
 <div id="stressTodayWrongList" class="hidden" style="margin-top:12px"></div>
@@ -558,8 +558,25 @@ let reviewQueue=[];
 let reviewIndex=-1;
 let reviewActive=false;
 let revivalItems=[];
-const TODAY_KEY="englishMasterWrongToday";
-const REVIVAL_KEY="englishMasterRevivalToday";
+// 학습 자료별로 오답/패자부활/강세 오답 데이터를 완전히 분리합니다.
+let activeDataId="default";
+const LEGACY_TODAY_KEY="englishMasterWrongToday";
+const LEGACY_REVIVAL_KEY="englishMasterRevivalToday";
+const LEGACY_STRESS_KEY="englishMasterStressWrongToday";
+
+function makeDataId(text,name){
+  const source=String(name||"자료")+"\n"+String(text||"");
+  // Web Crypto가 없어도 GitHub Pages/모바일에서 안정적으로 동작하도록 간단한 32-bit 해시 사용
+  let h=2166136261;
+  for(let i=0;i<source.length;i++){
+    h^=source.charCodeAt(i);
+    h=Math.imul(h,16777619);
+  }
+  return "d"+(h>>>0).toString(36);
+}
+function scopedStorageKey(base){
+  return base+":"+activeDataId;
+}
 
 const $=id=>document.getElementById(id);
 
@@ -632,10 +649,12 @@ $("wordCount").textContent=words.length;
 
 function loadData(text,name){
   setAppStarted(true);
+  activeDataId=makeDataId(text,name);
 parse(text);
 loadTodayWrong();
 loadTodayRevival();
 loadStressTodayWrong();
+localStorage.setItem("englishMasterScopedMigrationDone","1");
 renderWrongNote();
 $("fileName").textContent=name||"자료";
 
@@ -959,12 +978,21 @@ function todayDateKey(){
 
 function loadStressTodayWrong(){
   try{
-    const saved=JSON.parse(localStorage.getItem("englishMasterStressWrongToday")||"null");
+    const scopedKey=scopedStorageKey("englishMasterStressWrongToday");
+    let raw=localStorage.getItem(scopedKey);
+    if(raw===null && !localStorage.getItem("englishMasterScopedMigrationDone")){
+      const legacy=localStorage.getItem(LEGACY_STRESS_KEY);
+      if(legacy!==null){
+        raw=legacy;
+        localStorage.setItem(scopedKey,legacy);
+      }
+    }
+    const saved=JSON.parse(raw||"null");
     if(saved && saved.date===todayDateKey() && Array.isArray(saved.items)){
       stressTodayWrong=saved.items;
     }else{
       stressTodayWrong=[];
-      localStorage.setItem("englishMasterStressWrongToday",JSON.stringify({
+      localStorage.setItem(scopedStorageKey("englishMasterStressWrongToday"),JSON.stringify({
         date:todayDateKey(),items:[]
       }));
     }
@@ -974,7 +1002,7 @@ function loadStressTodayWrong(){
 }
 
 function saveStressTodayWrong(){
-  localStorage.setItem("englishMasterStressWrongToday",JSON.stringify({
+  localStorage.setItem(scopedStorageKey("englishMasterStressWrongToday"),JSON.stringify({
     date:todayDateKey(),
     items:stressTodayWrong
   }));
@@ -992,8 +1020,8 @@ function clearStressTodayWrong(){
   // 메모리와 localStorage를 모두 즉시 비웁니다.
   stressTodayWrong=[];
   try{
-    localStorage.removeItem("englishMasterStressWrongToday");
-    localStorage.setItem("englishMasterStressWrongToday", JSON.stringify({
+    localStorage.removeItem(scopedStorageKey("englishMasterStressWrongToday"));
+    localStorage.setItem(scopedStorageKey("englishMasterStressWrongToday"), JSON.stringify({
       date:todayDateKey(),
       items:[]
     }));
@@ -1303,7 +1331,19 @@ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.g
 
 function loadTodayWrong(){
   try{
-    const saved=JSON.parse(localStorage.getItem(TODAY_KEY)||"{}");
+    const scopedKey=scopedStorageKey("englishMasterWrongToday");
+    let raw=localStorage.getItem(scopedKey);
+    // 기존 버전의 공용 오답노트가 있다면 현재 처음 불러온 자료에만 1회 귀속시킵니다.
+    // 이후부터는 각 자료의 키를 사용하므로 서로 섞이지 않습니다.
+    if(raw===null){
+      const legacy=localStorage.getItem(LEGACY_TODAY_KEY);
+      if(legacy!==null && !localStorage.getItem("englishMasterScopedMigrationDone")){
+        raw=legacy;
+        localStorage.setItem(scopedKey,legacy);
+        localStorage.setItem("englishMasterScopedMigrationDone","1");
+      }
+    }
+    const saved=JSON.parse(raw||"{}");
     if(saved.date===todayDateKey()){
       todayWrongKeys=new Set(saved.keys||[]);
       todayWrongTypes=new Map();
@@ -1325,7 +1365,16 @@ function loadTodayWrong(){
 
 function loadTodayRevival(){
   try{
-    const saved=JSON.parse(localStorage.getItem(REVIVAL_KEY)||"{}");
+    const scopedKey=scopedStorageKey("englishMasterRevivalToday");
+    let raw=localStorage.getItem(scopedKey);
+    if(raw===null && !localStorage.getItem("englishMasterScopedMigrationDone")){
+      const legacy=localStorage.getItem(LEGACY_REVIVAL_KEY);
+      if(legacy!==null){
+        raw=legacy;
+        localStorage.setItem(scopedKey,legacy);
+      }
+    }
+    const saved=JSON.parse(raw||"{}");
     if(saved.date===todayDateKey() && Array.isArray(saved.items)){
       revivalItems=saved.items;
     }else{
@@ -1336,7 +1385,7 @@ function loadTodayRevival(){
 
 function saveTodayRevival(){
   try{
-    localStorage.setItem(REVIVAL_KEY, JSON.stringify({
+    localStorage.setItem(scopedStorageKey("englishMasterRevivalToday"), JSON.stringify({
       date:todayDateKey(),
       items:revivalItems
     }));
@@ -1434,7 +1483,7 @@ function clearTodayRevival(){
 function saveTodayWrong(){
   const types={};
   todayWrongTypes.forEach((set,key)=>{ types[key]=[...set]; });
-  localStorage.setItem(TODAY_KEY,JSON.stringify({
+  localStorage.setItem(scopedStorageKey("englishMasterWrongToday"),JSON.stringify({
     date:todayDateKey(),
     keys:[...todayWrongKeys],
     types
@@ -1463,7 +1512,7 @@ if(!list.length){
   box.innerHTML=`
   <div style="margin-top:14px">
     <button type="button" id="todayWrongBtn" class="secondary">
-      오늘의 오답노트
+      오늘의 오답
     </button>
   </div>
   <div id="todayRevivalArea"></div>`;
@@ -1475,7 +1524,7 @@ if(!list.length){
 box.innerHTML=`
 <div style="margin-top:14px">
   <button type="button" id="todayWrongBtn" class="secondary">
-    오늘의 오답노트 (${list.length})
+    오늘의 오답 (${list.length})
   </button>
 </div>
 <div id="todayRevivalArea"></div>`;
@@ -1491,7 +1540,7 @@ const list=words.filter(w=>todayWrongKeys.has(w.key+"|"+w.word));
 if(!list.length){
   box.innerHTML=`
   <div style="margin-top:14px">
-    <button type="button" id="todayWrongBtn" class="secondary">오늘의 오답노트</button>
+    <button type="button" id="todayWrongBtn" class="secondary">오늘의 오답</button>
   </div>
   <div class="notice" style="margin-top:10px">오늘 틀린 문제가 없습니다.</div>
   <div id="todayRevivalArea"></div>`;
