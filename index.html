@@ -42,6 +42,39 @@ p{line-height:1.75}.muted{color:var(--muted)}
 .range{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .range label{font-size:13px;color:var(--muted)}.range input{width:100%;padding:11px;border:1px solid #d0d5dd;border-radius:10px}
 .notice{background:#eff6ff;color:#1e40af;padding:12px 14px;border-radius:12px;margin-bottom:14px}
+
+/* 모바일 상단 정보 접기/펼치기 */
+.hero{position:sticky;top:0;z-index:20}
+.stats-toggle{
+  position:absolute;
+  right:18px;
+  bottom:10px;
+  width:34px;
+  height:34px;
+  min-width:34px;
+  padding:0;
+  border:1px solid #efc5d7;
+  border-radius:50%;
+  background:rgba(255,247,251,.96);
+  color:#c94f7f;
+  box-shadow:0 3px 9px rgba(164,87,119,.12);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  font-size:20px;
+  line-height:1;
+}
+.stats-toggle:hover{background:#fff0f6}
+.stats-toggle span{display:block;transform:translateY(-1px)}
+.hero.app-started .stats-toggle{display:flex}
+.hero.app-started.stats-collapsed .stats-toggle span{transform:rotate(180deg) translateY(-1px)}
+.hero.app-started.stats-collapsed .stats{display:none!important}
+.hero.app-started.stats-collapsed{padding-bottom:50px}
+@media(max-width:700px){
+  .stats-toggle{right:12px;bottom:8px;width:36px;height:36px}
+  .hero.app-started:not(.stats-collapsed){padding-bottom:52px}
+}
+
 @media(max-width:700px){h1{font-size:38px}.stats{grid-template-columns:1fr}.range{grid-template-columns:1fr}}
 
 <style>
@@ -304,6 +337,109 @@ input:focus{
 }
 </style>
 
+
+<style id="collapse-arrow-only-fix">
+/* 상단 흰색 상자는 완전히 숨기고 접기/펼치기 화살표만 유지 */
+.top-stats,
+.stats-header,
+.collapsible-header,
+.header-stats {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  min-height: 0 !important;
+  height: 0 !important;
+  overflow: visible !important;
+}
+
+/* 통계 내용 자체는 접힌 상태에서 보이지 않도록 */
+.top-stats > :not(.collapse-toggle),
+.stats-header > :not(.collapse-toggle),
+.collapsible-header > :not(.collapse-toggle),
+.header-stats > :not(.collapse-toggle) {
+  display: none !important;
+}
+
+/* 화살표만 화면 오른쪽 아래에 표시 */
+.collapse-toggle {
+  position: absolute !important;
+  right: 18px !important;
+  bottom: -2px !important;
+  z-index: 50 !important;
+  width: 38px !important;
+  height: 38px !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: #fff7fb !important;
+  color: #d95f91 !important;
+  border: 1px solid #f2c4d7 !important;
+  box-shadow: 0 4px 12px rgba(180, 82, 125, .12) !important;
+}
+
+@media (max-width:700px){
+  .collapse-toggle{
+    right: 12px !important;
+    bottom: -3px !important;
+    width: 36px !important;
+    height: 36px !important;
+  }
+}
+</style>
+
+
+<style id="sakura-collapse-arrow-only-final">
+/* 접힌 상태에서는 상단 카드/흰색 박스를 완전히 제거하고 화살표만 남김 */
+#homeScreen.app-started.stats-collapsed{
+  background:transparent !important;
+  border:none !important;
+  box-shadow:none !important;
+  padding:0 !important;
+  margin:0 !important;
+  height:48px !important;
+  min-height:48px !important;
+  border-radius:0 !important;
+  overflow:visible !important;
+}
+
+#homeScreen.app-started.stats-collapsed .stats{
+  display:none !important;
+}
+
+#homeScreen.app-started.stats-collapsed .stats-toggle{
+  display:flex !important;
+  position:absolute !important;
+  right:14px !important;
+  bottom:5px !important;
+  z-index:100 !important;
+}
+
+/* 화살표 자체는 작은 원형 버튼만 표시 */
+#homeStatsToggle{
+  width:36px !important;
+  height:36px !important;
+  min-width:36px !important;
+  padding:0 !important;
+  border-radius:50% !important;
+  align-items:center !important;
+  justify-content:center !important;
+}
+
+@media(max-width:700px){
+  #homeScreen.app-started.stats-collapsed{
+    height:44px !important;
+    min-height:44px !important;
+  }
+  #homeScreen.app-started.stats-collapsed .stats-toggle{
+    right:10px !important;
+    bottom:4px !important;
+  }
+}
+</style>
+
 </head>
 <body>
 <div class="app">
@@ -320,6 +456,7 @@ input:focus{
 <div class="stat"><small>단어</small><strong id="wordCount">0</strong></div>
 <div class="stat"><small>현재 자료</small><strong id="fileName">없음</strong></div>
 </div>
+<button type="button" id="homeStatsToggle" class="stats-toggle" aria-expanded="true" aria-label="상단 정보 접기" title="상단 정보 접기"><span aria-hidden="true">⌃</span></button>
 </section>
 
 <section class="panel hidden screen" id="savedPanel">
@@ -577,10 +714,21 @@ function setAppStarted(started){
   const desc=$("homeDescription");
   const actions=$("homeActions");
   const stats=$("homeStats");
+  const statsToggle=$("homeStatsToggle");
   if(title) title.style.display=started ? "none" : "";
   if(desc) desc.style.display=started ? "none" : "";
   if(actions) actions.style.display=started ? "none" : "";
   if(stats) stats.style.display=started ? "" : "none";
+  if(!started){
+    const hero=document.querySelector("#homeScreen");
+    if(hero) hero.classList.remove("stats-collapsed");
+    if(statsToggle){
+      statsToggle.setAttribute("aria-expanded","true");
+      statsToggle.setAttribute("aria-label","상단 정보 접기");
+      statsToggle.title="상단 정보 접기";
+      statsToggle.innerHTML='<span aria-hidden="true">⌃</span>';
+    }
+  }
 }
 
 function showHome(){
@@ -1813,6 +1961,21 @@ $("modeBack").addEventListener("click",()=>{
   }else{
     showScreen("uploadPanel");
   }
+});
+
+$("homeStatsToggle").addEventListener("click",()=>{
+  const hero=$("homeScreen");
+  const stats=$("homeStats");
+  const toggle=$("homeStatsToggle");
+  if(!hero || !stats || !toggle) return;
+  const collapsed=hero.classList.toggle("stats-collapsed");
+  stats.style.display=collapsed ? "none" : "";
+  toggle.setAttribute("aria-expanded",String(!collapsed));
+  toggle.setAttribute("aria-label",collapsed ? "상단 정보 펼치기" : "상단 정보 접기");
+  toggle.title=collapsed ? "상단 정보 펼치기" : "상단 정보 접기";
+  toggle.innerHTML=collapsed
+    ? '<span aria-hidden="true">⌄</span>'
+    : '<span aria-hidden="true">⌃</span>';
 });
 
 $("savedBtn").addEventListener("click",()=>{
