@@ -1463,7 +1463,7 @@ if(!list.length){
   box.innerHTML=`
   <div style="margin-top:14px">
     <button type="button" id="todayWrongBtn" class="secondary">
-      오늘의 오답
+      오늘의 오답노트
     </button>
   </div>
   <div id="todayRevivalArea"></div>`;
@@ -1475,7 +1475,7 @@ if(!list.length){
 box.innerHTML=`
 <div style="margin-top:14px">
   <button type="button" id="todayWrongBtn" class="secondary">
-    오늘의 오답 (${list.length})
+    오늘의 오답노트 (${list.length})
   </button>
 </div>
 <div id="todayRevivalArea"></div>`;
@@ -1491,7 +1491,7 @@ const list=words.filter(w=>todayWrongKeys.has(w.key+"|"+w.word));
 if(!list.length){
   box.innerHTML=`
   <div style="margin-top:14px">
-    <button type="button" id="todayWrongBtn" class="secondary">오늘의 오답</button>
+    <button type="button" id="todayWrongBtn" class="secondary">오늘의 오답노트</button>
   </div>
   <div class="notice" style="margin-top:10px">오늘 틀린 문제가 없습니다.</div>
   <div id="todayRevivalArea"></div>`;
