@@ -2187,5 +2187,420 @@ document.addEventListener("keydown", function(e){
 })();
 </script>
 
+
+<style id="sky-blue-theme">
+/* 빠른 5회 터치로 전환되는 하늘색 테마 */
+html.sky-theme{
+  --blue:#4aa9e8;
+  --blue-dark:#2f8dcc;
+  --bg:#f2faff;
+  --line:#cfe8f7;
+  --text:#183246;
+  --muted:#607b8c;
+  --pink-soft:#eaf7ff;
+  --pink-pale:#f4fbff;
+  --pink-mid:#cfeeff;
+  --pink-green:#e8f7ff;
+}
+html.sky-theme body{
+  background:
+    radial-gradient(circle at 10% 8%, rgba(166,220,248,.34) 0 80px, transparent 81px),
+    radial-gradient(circle at 92% 18%, rgba(196,232,250,.38) 0 110px, transparent 111px),
+    linear-gradient(180deg,#f9fdff 0%,#f1faff 52%,#f7fcff 100%);
+  color:var(--text);
+}
+html.sky-theme body::before,
+html.sky-theme body::after{
+  background:linear-gradient(145deg,#9ed9f5 0%,#7fc8ec 72%,#62b5df 100%);
+  opacity:.45;
+  box-shadow:
+    0 120px 0 -2px rgba(127,200,236,.38),
+    70px 260px 0 1px rgba(158,217,245,.35),
+    -35px 430px 0 -1px rgba(98,181,223,.30);
+}
+html.sky-theme .hero,
+html.sky-theme .panel{
+  border-color:#cfe8f7;
+  box-shadow:0 12px 32px rgba(63,139,181,.10);
+}
+html.sky-theme h1{color:#183246}
+html.sky-theme h2,
+html.sky-theme h3{color:#21445b}
+
+html.sky-theme button{
+  background:linear-gradient(135deg,#62b9eb,#429ed8);
+  box-shadow:0 5px 12px rgba(66,158,216,.18);
+}
+html.sky-theme button:hover:not(:disabled){
+  box-shadow:0 7px 16px rgba(66,158,216,.24);
+}
+html.sky-theme button.secondary{
+  background:#eaf7ff;
+  color:#2f8dcc;
+  border-color:#cfe8f7;
+}
+html.sky-theme button.gray{
+  background:#edf5f9;
+  color:#496675;
+}
+html.sky-theme button.active-select,
+html.sky-theme .active-select{
+  background:linear-gradient(135deg,#429ed8,#2f8dcc)!important;
+  color:#fff!important;
+  border-color:#2f8dcc!important;
+  box-shadow:0 6px 14px rgba(47,141,204,.24)!important;
+}
+html.sky-theme .stats-toggle{
+  border-color:#b9def2;
+  background:rgba(245,252,255,.96);
+  color:#2f8dcc;
+}
+html.sky-theme .stats-toggle:hover{background:#eaf7ff}
+
+html.sky-theme .stat{
+  background:linear-gradient(145deg,#f7fcff,#eaf7ff);
+  border-color:#cfe8f7;
+}
+html.sky-theme .stat small{color:#668393}
+html.sky-theme .stat strong{color:#24485d}
+
+html.sky-theme .notice{
+  background:#eaf7ff;
+  color:#286f9f;
+  border-color:#cfe8f7;
+}
+html.sky-theme .badge{
+  background:#eaf7ff;
+  color:#397a9f;
+  border-color:#cfe8f7;
+}
+html.sky-theme .keybtn{
+  background:#f2faff;
+  color:#2f8dcc;
+  border-color:#cfe8f7;
+}
+html.sky-theme .keybtn:hover:not(:disabled){background:#e3f5ff}
+
+html.sky-theme .filebox{
+  border-color:#a9d6ef;
+  background:#f8fdff;
+}
+html.sky-theme .saved-file-item{
+  background:#eaf7ff;
+  color:#2f78a5;
+  border-color:#cfe8f7;
+}
+html.sky-theme .saved-file-item:hover{background:#def2ff}
+
+html.sky-theme .quiz{
+  background:linear-gradient(145deg,#f8fdff,#edf8ff);
+  border-color:#cfe8f7;
+}
+html.sky-theme .question{color:#21445b}
+html.sky-theme .answer{
+  border-color:#c4deed;
+  color:#24485d;
+}
+html.sky-theme .feedback{border-color:#cfe8f7}
+html.sky-theme .passage-answer-btn{
+  background:linear-gradient(135deg,#62b9eb,#429ed8)!important;
+}
+html.sky-theme .item{border-color:#cfe8f7}
+html.sky-theme .item:hover{background:#eff9ff}
+html.sky-theme .stress-guide{
+  border-color:#cfe8f7;
+  background:#f3fbff;
+}
+html.sky-theme .stress-syllable{
+  border-color:#c8e1ef;
+  color:#2c5268;
+}
+</style>
+
+
+
+<style id="stress-button-theme-fix">
+/* 강세 음절 버튼: 처음에는 흰색, 누르면 테마의 강조색, 채점 후 정답은 초록색 */
+html.sky-theme .stress-syllable,
+html.green-theme .stress-syllable{
+  background:#fff !important;
+  color:var(--text) !important;
+  border-color:var(--line) !important;
+  box-shadow:none !important;
+}
+html.sky-theme .stress-syllable:hover,
+html.green-theme .stress-syllable:hover{
+  background:#fff !important;
+}
+html.sky-theme .stress-syllable.selected{
+  background:#429ed8 !important;
+  color:#fff !important;
+  border-color:#429ed8 !important;
+  box-shadow:0 5px 12px rgba(66,158,216,.20) !important;
+}
+html.green-theme .stress-syllable.selected{
+  background:#55a978 !important;
+  color:#fff !important;
+  border-color:#55a978 !important;
+  box-shadow:0 5px 12px rgba(70,151,99,.20) !important;
+}
+.stress-syllable.correct,
+html.sky-theme .stress-syllable.correct,
+html.green-theme .stress-syllable.correct{
+  background:#dcfce7 !important;
+  color:#166534 !important;
+  border-color:#22c55e !important;
+  box-shadow:none !important;
+}
+.stress-syllable.wrong,
+html.sky-theme .stress-syllable.wrong,
+html.green-theme .stress-syllable.wrong{
+  background:#fee2e2 !important;
+  color:#991b1b !important;
+  border-color:#ef4444 !important;
+  box-shadow:none !important;
+}
+</style>
+
+<script id="theme-cycle-handler">
+(function(){
+  const THEMES = ["", "sky-theme", "green-theme"];
+  let themeIndex = 0;
+  let lastTapTimes = [];
+
+  function applyTheme(index, save=true){
+    themeIndex = ((index % THEMES.length) + THEMES.length) % THEMES.length;
+    document.documentElement.classList.remove("sky-theme","green-theme");
+    if(THEMES[themeIndex]) {
+      document.documentElement.classList.add(THEMES[themeIndex]);
+    }
+    // 테마는 현재 페이지에서만 변경되며 저장하지 않습니다.
+    // 새로 접속하거나 새로고침하면 기본 핑크로 시작합니다.
+  }
+
+  // 첫 진입은 항상 기본 핑크 테마입니다.
+  applyTheme(0, false);
+
+  // 더블클릭: 핑크 → 파랑 → 연한 녹색 → 핑크
+  document.addEventListener("dblclick", function(){
+    applyTheme(themeIndex + 1);
+  }, false);
+
+  // 기존 빠른 5회 클릭 기능도 유지한다.
+  document.addEventListener("click", function(){
+    const now = Date.now();
+    lastTapTimes = lastTapTimes.filter(t => now - t < 900);
+    lastTapTimes.push(now);
+    if(lastTapTimes.length >= 5){
+      applyTheme(themeIndex + 1);
+      lastTapTimes = [];
+    }
+  }, false);
+
+  document.addEventListener("pointerup", function(e){
+    if(e.pointerType === "mouse") return;
+    const now = Date.now();
+    lastTapTimes = lastTapTimes.filter(t => now - t < 900);
+    lastTapTimes.push(now);
+    if(lastTapTimes.length >= 5){
+      applyTheme(themeIndex + 1);
+      lastTapTimes = [];
+    }
+  }, {passive:true});
+})();
+</script>
+
+
+
+<style id="stress-selection-fix">
+/* 강세 연습에서 본문 번호를 선택하기 전에는 문제 영역을 숨긴다. */
+.stress-practice-unselected .stress-question,
+.stress-practice-unselected .stress-current-question,
+.stress-practice-unselected .stress-content,
+.stress-practice-unselected .stress-quiz,
+.stress-practice-unselected .stress-word-area {
+  display: none !important;
+}
+</style>
+
+
+<style id="soft-green-theme">
+/* 3번째 테마: 연한 녹색 */
+html.green-theme{
+  --blue:#63ad82;
+  --blue-dark:#4c966d;
+  --bg:#f4fbf6;
+  --line:#cfe9d8;
+  --text:#234436;
+  --muted:#6c8475;
+  --pink-soft:#edf8f0;
+  --pink-pale:#f7fcf8;
+  --pink-mid:#d9f0df;
+  --pink-green:#e8f7ec;
+}
+html.green-theme body{
+  background:
+    radial-gradient(circle at 10% 8%, rgba(180,226,194,.34) 0 80px, transparent 81px),
+    radial-gradient(circle at 92% 18%, rgba(205,235,213,.40) 0 110px, transparent 111px),
+    linear-gradient(180deg,#fbfffc 0%,#f2faf5 52%,#f8fcf9 100%);
+  color:var(--text);
+}
+html.green-theme body::before,
+html.green-theme body::after{
+  background:linear-gradient(145deg,#b7e2c4 0%,#91cfaa 72%,#75bd91 100%);
+  opacity:.45;
+  box-shadow:
+    0 120px 0 -2px rgba(145,207,170,.38),
+    70px 260px 0 1px rgba(183,226,196,.35),
+    -35px 430px 0 -1px rgba(117,189,145,.30);
+}
+html.green-theme .hero,
+html.green-theme .panel{
+  border-color:#cfe9d8;
+  box-shadow:0 12px 32px rgba(73,145,99,.10);
+}
+html.green-theme h1{color:#234436}
+html.green-theme h2,
+html.green-theme h3{color:#315846}
+html.green-theme button{
+  background:linear-gradient(135deg,#72bd8f,#55a978);
+  box-shadow:0 5px 12px rgba(70,151,99,.18);
+}
+html.green-theme button:hover:not(:disabled){
+  box-shadow:0 7px 16px rgba(70,151,99,.24);
+}
+html.green-theme button.secondary{
+  background:#edf8f0;
+  color:#4c966d;
+  border-color:#cfe9d8;
+}
+html.green-theme button.gray{
+  background:#eef7f1;
+  color:#557263;
+}
+html.green-theme button.active-select,
+html.green-theme .active-select{
+  background:linear-gradient(135deg,#55a978,#4c966d)!important;
+  color:#fff!important;
+  border-color:#4c966d!important;
+  box-shadow:0 6px 14px rgba(76,150,109,.24)!important;
+}
+html.green-theme .stats-toggle{
+  border-color:#bfe0ca;
+  background:rgba(247,253,249,.96);
+  color:#4c966d;
+}
+html.green-theme .stats-toggle:hover{background:#edf8f0}
+html.green-theme .stat{
+  background:linear-gradient(145deg,#f8fdf9,#edf8f0);
+  border-color:#cfe9d8;
+}
+html.green-theme .stat small{color:#708879}
+html.green-theme .stat strong{color:#315846}
+html.green-theme .notice{
+  background:#edf8f0;
+  color:#3f7d57;
+  border-color:#cfe9d8;
+}
+html.green-theme .badge{
+  background:#edf8f0;
+  color:#4d8160;
+  border-color:#cfe9d8;
+}
+html.green-theme .keybtn{
+  background:#f3fbf5;
+  color:#4c966d;
+  border-color:#cfe9d8;
+}
+html.green-theme .keybtn:hover:not(:disabled){background:#e8f6ec}
+html.green-theme .filebox{
+  border-color:#add8ba;
+  background:#fbfffc;
+}
+html.green-theme .saved-file-item{
+  background:#edf8f0;
+  color:#4c7f5d;
+  border-color:#cfe9d8;
+}
+html.green-theme .saved-file-item:hover{background:#e1f3e6}
+html.green-theme .quiz{
+  background:linear-gradient(145deg,#fbfffc,#f0faf4);
+  border-color:#cfe9d8;
+}
+html.green-theme .question{color:#315846}
+html.green-theme .answer{
+  border-color:#c6dfce;
+  color:#315846;
+}
+html.green-theme .feedback{border-color:#cfe9d8}
+html.green-theme .item{border-color:#cfe9d8}
+html.green-theme .item:hover{background:#f0faf4}
+html.green-theme .stress-guide{
+  border-color:#cfe9d8;
+  background:#f2faf5;
+}
+html.green-theme .stress-syllable{
+  border-color:#c8e0d0;
+  color:#315846;
+}
+</style>
+
+
+<script id="stress-selection-visibility-fix">
+(function(){
+  function isStressPage(){
+    const text = document.body ? document.body.innerText : "";
+    return text.includes("강세 연습하기");
+  }
+
+  function findStressRoot(){
+    const headings = Array.from(document.querySelectorAll("h1,h2,h3"));
+    const h = headings.find(el => el.textContent.trim() === "강세 연습하기");
+    if(!h) return null;
+    return h.closest(".panel, .card, section, main, div") || h.parentElement;
+  }
+
+  function getNumberButtons(root){
+    if(!root) return [];
+    return Array.from(root.querySelectorAll("button")).filter(btn => {
+      const t = btn.textContent.trim();
+      return /^(?:25-)?\d+(?:-\d+)?$/.test(t);
+    });
+  }
+
+  function updateVisibility(){
+    if(!isStressPage()) return;
+    const root = findStressRoot();
+    if(!root) return;
+
+    const nums = getNumberButtons(root);
+    if(!nums.length) return;
+
+    const selected = nums.some(b =>
+      b.classList.contains("active-select") ||
+      b.classList.contains("selected") ||
+      b.getAttribute("aria-pressed") === "true" ||
+      b.getAttribute("aria-selected") === "true"
+    );
+
+    // 버튼들이 모두 기본 상태면 아직 본문을 선택하지 않은 것으로 본다.
+    root.classList.toggle("stress-practice-unselected", !selected);
+  }
+
+  document.addEventListener("click", function(e){
+    const btn = e.target.closest("button");
+    if(btn) setTimeout(updateVisibility, 0);
+  }, false);
+
+  // SPA 화면 전환 및 기존 코드의 DOM 변경에도 대응
+  const observer = new MutationObserver(function(){
+    setTimeout(updateVisibility, 0);
+  });
+  observer.observe(document.body, {childList:true, subtree:true, attributes:true});
+
+  setTimeout(updateVisibility, 100);
+})();
+</script>
+
 </body>
 </html>
