@@ -390,6 +390,39 @@ input:focus{
   }
 }
 </style>
+<style id="theme-aware-stats-arrow-final-fix">
+/* 상단 접기/펼치기 화살표도 현재 테마 색상을 그대로 사용합니다. */
+html:not(.sky-theme):not(.green-theme) #homeStatsToggle,
+html:not(.sky-theme):not(.green-theme) .stats-toggle{
+  color:#d45d8e !important;
+  border-color:#efbfd2 !important;
+  background:#fff7fb !important;
+}
+html.sky-theme #homeStatsToggle,
+html.sky-theme .stats-toggle{
+  color:#2f8dcc !important;
+  border-color:#b9def2 !important;
+  background:#f5fcff !important;
+  box-shadow:0 4px 12px rgba(47,141,204,.14) !important;
+}
+html.green-theme #homeStatsToggle,
+html.green-theme .stats-toggle{
+  color:#4c966d !important;
+  border-color:#b9ddc6 !important;
+  background:#f5fcf7 !important;
+  box-shadow:0 4px 12px rgba(76,150,109,.14) !important;
+}
+html.sky-theme #homeScreen.app-started.stats-collapsed > #homeStatsToggle{
+  color:#2f8dcc !important;
+  border-color:#b9def2 !important;
+  background:#f5fcff !important;
+}
+html.green-theme #homeScreen.app-started.stats-collapsed > #homeStatsToggle{
+  color:#4c966d !important;
+  border-color:#b9ddc6 !important;
+  background:#f5fcf7 !important;
+}
+</style>
 </head>
 <body>
 <div class="app">
@@ -464,7 +497,7 @@ input:focus{
 <div id="stressArea" class="hidden" style="margin-top:18px">
 <div class="notice">강세 연습할 본문 번호를 선택하세요. 번호를 누르면 바로 연습이 시작됩니다.</div>
 <div class="row" style="margin-top:12px">
-  <button type="button" id="stressTodayWrongBtn" class="secondary">오늘의 오답</button>
+  <button type="button" id="stressTodayWrongBtn" class="secondary">오늘의 오답노트</button>
   <button type="button" id="clearStressTodayWrongBtn" class="secondary" onclick="clearStressTodayWrong()">오늘의 오답노트 비우기</button>
 </div>
 <div id="stressTodayWrongList" class="hidden" style="margin-top:12px"></div>
@@ -1239,7 +1272,7 @@ function renderPassageStressQuestion(){
       passageStressCorrect++;
       fb.innerHTML='<span class="ok">정답입니다!</span>';
     }else{
-      // 현재 시험의 오답 + 오늘의 오답에 모두 기록합니다.
+      // 현재 시험의 오답 + 오늘의 오답노트에 모두 기록합니다.
       if(!passageStressWrong.some(x=>x.key===w.key && x.word===w.word)){
         passageStressWrong.push(w);
       }
@@ -1512,7 +1545,7 @@ if(!list.length){
   box.innerHTML=`
   <div style="margin-top:14px">
     <button type="button" id="todayWrongBtn" class="secondary">
-      오늘의 오답
+      오늘의 오답노트
     </button>
   </div>
   <div id="todayRevivalArea"></div>`;
@@ -1524,7 +1557,7 @@ if(!list.length){
 box.innerHTML=`
 <div style="margin-top:14px">
   <button type="button" id="todayWrongBtn" class="secondary">
-    오늘의 오답 (${list.length})
+    오늘의 오답노트 (${list.length})
   </button>
 </div>
 <div id="todayRevivalArea"></div>`;
@@ -1540,7 +1573,7 @@ const list=words.filter(w=>todayWrongKeys.has(w.key+"|"+w.word));
 if(!list.length){
   box.innerHTML=`
   <div style="margin-top:14px">
-    <button type="button" id="todayWrongBtn" class="secondary">오늘의 오답</button>
+    <button type="button" id="todayWrongBtn" class="secondary">오늘의 오답노트</button>
   </div>
   <div class="notice" style="margin-top:10px">오늘 틀린 문제가 없습니다.</div>
   <div id="todayRevivalArea"></div>`;
