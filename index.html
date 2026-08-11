@@ -1469,6 +1469,7 @@ startWordQuiz();
 }
 
 const SAVED_FILES_MANIFEST="data/files.json";
+let studySource="upload";
 
 function showSavedFilesMessage(message){
   const box=$("savedFileMessage");
@@ -1537,6 +1538,7 @@ async function loadSavedStudyFile(item,button){
 }
 
 $("startBtn").addEventListener("click",()=>{
+  studySource="upload";
   setAppStarted(true);
   showScreen("uploadPanel");
 });
@@ -1554,10 +1556,15 @@ $("uploadStartBtn").addEventListener("click",()=>{
 });
 
 $("modeBack").addEventListener("click",()=>{
-  showScreen("uploadPanel");
+  if(studySource==="saved"){
+    loadSavedFileList();
+  }else{
+    showScreen("uploadPanel");
+  }
 });
 
 $("savedBtn").addEventListener("click",()=>{
+  studySource="saved";
   setAppStarted(true);
   loadSavedFileList();
 });
