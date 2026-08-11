@@ -337,109 +337,6 @@ input:focus{
 }
 </style>
 
-
-<style id="collapse-arrow-only-fix">
-/* 상단 흰색 상자는 완전히 숨기고 접기/펼치기 화살표만 유지 */
-.top-stats,
-.stats-header,
-.collapsible-header,
-.header-stats {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  padding: 0 !important;
-  min-height: 0 !important;
-  height: 0 !important;
-  overflow: visible !important;
-}
-
-/* 통계 내용 자체는 접힌 상태에서 보이지 않도록 */
-.top-stats > :not(.collapse-toggle),
-.stats-header > :not(.collapse-toggle),
-.collapsible-header > :not(.collapse-toggle),
-.header-stats > :not(.collapse-toggle) {
-  display: none !important;
-}
-
-/* 화살표만 화면 오른쪽 아래에 표시 */
-.collapse-toggle {
-  position: absolute !important;
-  right: 18px !important;
-  bottom: -2px !important;
-  z-index: 50 !important;
-  width: 38px !important;
-  height: 38px !important;
-  padding: 0 !important;
-  border-radius: 50% !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  background: #fff7fb !important;
-  color: #d95f91 !important;
-  border: 1px solid #f2c4d7 !important;
-  box-shadow: 0 4px 12px rgba(180, 82, 125, .12) !important;
-}
-
-@media (max-width:700px){
-  .collapse-toggle{
-    right: 12px !important;
-    bottom: -3px !important;
-    width: 36px !important;
-    height: 36px !important;
-  }
-}
-</style>
-
-
-<style id="sakura-collapse-arrow-only-final">
-/* 접힌 상태에서는 상단 카드/흰색 박스를 완전히 제거하고 화살표만 남김 */
-#homeScreen.app-started.stats-collapsed{
-  background:transparent !important;
-  border:none !important;
-  box-shadow:none !important;
-  padding:0 !important;
-  margin:0 !important;
-  height:48px !important;
-  min-height:48px !important;
-  border-radius:0 !important;
-  overflow:visible !important;
-}
-
-#homeScreen.app-started.stats-collapsed .stats{
-  display:none !important;
-}
-
-#homeScreen.app-started.stats-collapsed .stats-toggle{
-  display:flex !important;
-  position:absolute !important;
-  right:14px !important;
-  bottom:5px !important;
-  z-index:100 !important;
-}
-
-/* 화살표 자체는 작은 원형 버튼만 표시 */
-#homeStatsToggle{
-  width:36px !important;
-  height:36px !important;
-  min-width:36px !important;
-  padding:0 !important;
-  border-radius:50% !important;
-  align-items:center !important;
-  justify-content:center !important;
-}
-
-@media(max-width:700px){
-  #homeScreen.app-started.stats-collapsed{
-    height:44px !important;
-    min-height:44px !important;
-  }
-  #homeScreen.app-started.stats-collapsed .stats-toggle{
-    right:10px !important;
-    bottom:4px !important;
-  }
-}
-</style>
-
 </head>
 <body>
 <div class="app">
@@ -1652,17 +1549,17 @@ let html="";
 if(wordMode==="word"){
 html=progress+`<div class="question">뜻을 보고 영어 단어를 입력하세요.</div>
 <p>${esc(w.meaning)}</p>
-<input class="answer" id="wordAnswer" autocomplete="off" placeholder="영어 단어">
+<input class="answer" id="wordAnswer" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="go" inputmode="text" placeholder="영어 단어">
 `;
 }else if(wordMode==="meaning"){
 html=progress+`<div class="question">영어 단어를 보고 뜻을 입력하세요.</div>
 <p><b>${esc(w.word)}</b></p>
-<input class="answer" id="wordAnswer" autocomplete="off" placeholder="뜻">
+<input class="answer" id="wordAnswer" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="go" inputmode="text" placeholder="뜻">
 `;
 }else{
 html=progress+`<div class="question">다음 영어 단어의 <b>발음</b>을 입력하세요.</div>
 <p><b>${esc(w.word)}</b></p>
-<input class="answer" id="wordAnswer" autocomplete="off" placeholder="한글 발음">
+<input class="answer" id="wordAnswer" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="go" inputmode="text" placeholder="한글 발음">
 <div id="stressStage" class="hidden"></div>`;
 }
 html+=`<div class="row" style="margin-top:10px">
@@ -1675,11 +1572,23 @@ $("wordQuiz").innerHTML=html;
 $("checkWord").addEventListener("click",checkWord);
 $("nextWord").addEventListener("click",newWord);
 
-if(wordMode==="pron"){
-  $("wordAnswer").addEventListener("keydown",e=>{if(e.key==="Enter")checkWord();});
-}else{
-  $("wordAnswer").addEventListener("keydown",e=>{if(e.key==="Enter")checkWord();});
-}
+/* 모바일 키보드의 'Enter/이동'을 누르면 정답 확인을 실행하되,
+   기본 동작으로 입력창이 포커스를 잃거나 키보드가 내려가지 않게 합니다. */
+$("wordAnswer").addEventListener("keydown",e=>{
+  if((e.key==="Enter" || e.keyCode===13) && !e.isComposing){
+    e.preventDefault();
+    e.stopPropagation();
+    checkWord();
+    requestAnimationFrame(()=>{
+      const input=$("wordAnswer");
+      if(input){
+        input.focus({preventScroll:true});
+        const len=input.value.length;
+        try{input.setSelectionRange(len,len);}catch(_){ }
+      }
+    });
+  }
+});
 }
 
 function normalize(s){
