@@ -1,1 +1,1644 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>영어 마스터</title>
+<style>
+:root{--blue:#2563eb;--bg:#f5f7fb;--line:#e5e7eb;--text:#172033;--muted:#667085}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input{font:inherit}
+button{border:0;border-radius:12px;padding:11px 16px;background:var(--blue);color:#fff;font-weight:700;cursor:pointer}
+button.secondary{background:#e9efff;color:#1d4ed8}
+button.gray{background:#eef1f5;color:#344054}
+button:disabled{opacity:.5;cursor:not-allowed}
+.app{max-width:1050px;margin:auto;padding:28px 16px 60px}
+.hero,.panel{background:#fff;border:1px solid var(--line);border-radius:22px;box-shadow:0 10px 30px #1720330d}
+.hero{padding:30px;position:sticky;top:0;z-index:20;text-align:center}.panel{padding:22px;margin-top:18px}
+h1{font-size:46px;letter-spacing:-2px;margin:0 0 8px}h2{margin:0 0 16px}
+p{line-height:1.75}.muted{color:var(--muted)}
+.row{display:flex;gap:9px;flex-wrap:wrap}.hero .row{justify-content:center}.page-title-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.page-title-row h2{margin:0}.page-title-row button{flex-shrink:0}.hidden{display:none!important}
+.filebox{border:2px dashed #cbd5e1;border-radius:16px;padding:20px;text-align:center}
+.saved-file-list{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+.saved-file-item{width:100%;text-align:left;background:#eef3ff;color:#1450d2;border:0;border-radius:12px;padding:14px 16px;font-size:16px;font-weight:800;cursor:pointer}
+.saved-file-item:hover{background:#dce7ff}
+.saved-file-item:disabled{opacity:.6;cursor:wait}
+.filebox input{width:100%}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:20px}
+.stat{background:#f8fafc;border-radius:14px;padding:14px}.stat small{display:block;color:var(--muted)}.stat strong{font-size:22px}
+.keygrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}
+.keybtn{width:100%;padding:14px 8px}
+.list{display:grid;gap:9px;margin-top:15px}
+.item{border:1px solid var(--line);border-radius:14px;padding:14px;cursor:pointer;background:#fff}
+.item:hover{background:#f8fafc}
+.item b{display:block;margin-bottom:6px}
+.quiz{background:#f8fafc;border-radius:17px;padding:20px}
+.question{font-size:19px;font-weight:750;margin-bottom:12px}
+.answer{width:100%;padding:13px;border:1px solid #cbd5e1;border-radius:12px;background:#fff}
+.feedback{margin-top:14px;padding:13px;border-radius:12px;background:#fff;border:1px solid var(--line)}.passage-answer-btn{display:inline-block!important;background:#2563eb!important;color:#fff!important;font-size:16px!important;font-weight:800!important;padding:13px 20px!important;border-radius:12px!important;visibility:visible!important;opacity:1!important}
+.ok{color:#078a62;font-weight:800}.bad{color:#d92d20;font-weight:800}
+.badge{display:inline-block;padding:7px 10px;border-radius:999px;background:#eef2f7;color:#475467;font-size:13px}
+.range{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.range label{font-size:13px;color:var(--muted)}.range input{width:100%;padding:11px;border:1px solid #d0d5dd;border-radius:10px}
+.notice{background:#eff6ff;color:#1e40af;padding:12px 14px;border-radius:12px;margin-bottom:14px}
+@media(max-width:700px){h1{font-size:38px}.stats{grid-template-columns:1fr}.range{grid-template-columns:1fr}}
 
+<style>
+.stress-guide{margin-top:10px;padding:12px;border:1px solid var(--line);border-radius:12px;background:#f8fafc}
+.stress-syllables{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.stress-syllable{min-width:48px;padding:11px 14px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);font-weight:800;cursor:pointer}
+.stress-syllable.selected{background:#2563eb;color:#fff;border-color:#2563eb}.active-select{background:#2563eb!important;color:#fff!important;border-color:#2563eb!important}
+.stress-syllable.correct{background:#dcfce7;color:#166534;border-color:#22c55e}
+.stress-syllable.wrong{background:#fee2e2;color:#991b1b;border-color:#ef4444}
+.screen{display:none!important}.screen.active{display:block!important}
+</style>
+</style>
+</head>
+<body>
+<div class="app">
+
+<section class="hero" id="homeScreen">
+<h1 id="homeTitle">영어 마스터</h1>
+<p class="muted" id="homeDescription">MD 학습자료를 불러와 본문 읽기와 단어·뜻·발음 연습을 합니다.</p>
+<div class="row" id="homeActions">
+<button type="button" id="startBtn">시작하기</button>
+<button type="button" id="savedBtn" class="secondary">저장된 파일로 시작</button>
+</div>
+<div class="stats" id="homeStats" style="display:none">
+<div class="stat"><small>본문</small><strong id="passageCount">0</strong></div>
+<div class="stat"><small>단어</small><strong id="wordCount">0</strong></div>
+<div class="stat"><small>현재 자료</small><strong id="fileName">없음</strong></div>
+</div>
+</section>
+
+<section class="panel hidden screen" id="savedPanel">
+<div class="page-title-row">
+<h2>저장된 파일로 시작</h2>
+<button type="button" id="savedBack" class="gray">뒤로</button>
+</div>
+<p class="muted">저장된 학습 자료 중 하나를 선택하세요.</p>
+<div id="savedFileList" class="saved-file-list"></div>
+<div id="savedFileMessage" class="notice hidden"></div>
+</section>
+
+<section class="panel hidden screen" id="uploadPanel">
+<div class="page-title-row">
+<h2>학습 자료 불러오기</h2>
+<button type="button" id="uploadBack" class="gray">뒤로</button>
+</div>
+<div class="row" style="margin-bottom:16px">
+<button type="button" id="uploadStartBtn" class="secondary">시작하기</button>
+</div>
+<div class="filebox">
+<input id="fileInput" type="file" accept=".md,.markdown,.txt,text/plain">
+<p class="muted">MD 파일을 선택하세요.</p>
+</div>
+</section>
+
+<section class="panel hidden screen" id="modePanel">
+<div class="page-title-row">
+<h2>무엇을 공부할까요?</h2>
+<button type="button" id="modeBack" class="gray">뒤로</button>
+</div>
+<div class="row">
+<button type="button" id="passageBtn" class="secondary">1. 본문 읽기 연습</button>
+<button type="button" id="wordBtn" class="secondary">2. 영어 단어 연습</button>
+</div>
+</section>
+
+<section class="panel hidden screen" id="passagePanel">
+<h2>본문 읽기 연습</h2>
+<div class="row">
+<button type="button" id="randomBtn" class="secondary">랜덤으로 읽기</button>
+<button type="button" id="chooseBtn" class="secondary">원하는 본문 읽기</button>
+<button type="button" id="stressBtn" class="secondary">강세 연습하기</button>
+<button type="button" id="passageBack" class="secondary">뒤로</button>
+</div>
+
+
+
+<div id="chooseArea" class="hidden" style="margin-top:18px">
+<div class="notice">학습자료에 있는 본문 번호를 선택하세요.</div>
+<div id="keyGrid" class="keygrid"></div>
+<div id="passageList" class="list"></div>
+</div>
+<div id="passageQuiz" class="hidden" style="margin-top:18px"></div>
+<div id="stressArea" class="hidden" style="margin-top:18px">
+<div class="notice">강세 연습할 본문 번호를 선택하세요. 번호를 누르면 바로 연습이 시작됩니다.</div>
+<div class="row" style="margin-top:12px">
+  <button type="button" id="stressTodayWrongBtn" class="secondary">오늘의 오답</button>
+  <button type="button" id="clearStressTodayWrongBtn" class="secondary" onclick="clearStressTodayWrong()">오늘의 오답노트 비우기</button>
+</div>
+<div id="stressTodayWrongList" class="hidden" style="margin-top:12px"></div>
+<div id="stressKeyGrid" class="keygrid" style="margin-top:12px"></div>
+<div id="stressPassageList" class="list" style="margin-top:12px"></div>
+<div id="stressSelectedPassage" class="panel hidden" style="margin-top:16px"></div>
+<div id="passageStressPractice" class="panel hidden" style="margin-top:16px">
+  <h3 style="margin-top:0">강세 연습하기</h3>
+  <p class="muted">선택한 본문에 나오는 단어들의 강세를 맞혀보세요.</p>
+  <div id="passageStressQuiz"></div>
+</div>
+</div>
+</section>
+<section class="panel hidden screen" id="wordPanel">
+<h2>영어 단어 연습</h2>
+<div class="row">
+<button type="button" id="wordTab" class="active-select">단어</button>
+<button type="button" id="meaningTab" class="secondary">뜻</button>
+<button type="button" id="pronTab" class="secondary">발음</button>
+<button type="button" id="wordBack" class="gray">뒤로</button>
+</div>
+
+<div style="margin-top:18px">
+  <div style="font-size:13px;color:var(--muted);margin-bottom:8px">시험 범위를 선택하세요</div>
+  <div id="wordRangeGrid" class="keygrid"></div>
+  <div class="row" style="margin-top:10px">
+    <button type="button" id="selectAllRange" class="secondary">전체 선택</button>
+    <button type="button" id="clearRange" class="gray">전체 해제</button>
+  </div>
+</div>
+<div style="margin-top:12px">
+<span class="badge" id="modeBadge">모드: 단어</span>
+<span class="badge" id="rangeBadge">범위: 전체</span>
+</div>
+
+<div id="wrongNoteArea"></div>
+
+<div id="wordQuiz" class="quiz" style="margin-top:14px"></div>
+</section>
+
+</div>
+
+<script>
+(function(){
+"use strict";
+
+const SAMPLE = `[25-1] Some plant diseases are indeed difficult to ______ because they can spread rapidly and easily, impacting multiple plants in a vast area./eradicate
+1 | [25-1] | diseases | 질병들 | 명사 | 디**지**지스
+2 | [25-1] | disease | 질병 | 명사 | 디**지**스
+3 | [25-1] | indeed | 정말, 실제로, 확실히 | 부사 | 인**디드**
+4 | [25-1] | spread | 퍼지다, 확산하다 | 동사 | 스프레드
+5 | [25-1] | rapidly | 빠르게, 신속하게 | 부사 | **래**피들리
+6 | [25-1] | easily | 쉽게 | 부사 | **이**즐리
+7 | [25-1] | impacting | ~영향을 미치면서 | 현재분사 | 임**팩**팅
+8 | [25-1] | multiple | 여러 개의, 다수의 | 형용사 | **멀**티플
+9 | [25-1] | vast | 매우 넓은 | 형용사 | 배스트
+10 | [25-1] | eradicate | 박멸하다, 근절하다 | 동사 | 이**래**디케이트
+[25-2] In the business world, ______ is highly valued as it showcases a person's commitment to meeting deadlines and respecting others' time./punctuality
+11 | [25-2] | highly | 매우, 높게, 높이 | 부사 | **하**일리
+12 | [25-2] | value | 중요하게 여기다, 가치있게 여기다, 평가하다 | 동사 | **밸**류
+13 | [25-2] | showcase | 보여주다, 드러내다, 돋보이게 하다 | 동사 | **쇼**케이스
+14 | [25-2] | commitment | 헌신, 전념, 의무, 책임감 | 명사 | 커**밋**먼트
+15 | [25-2] | humility | 겸손, 겸허함 | 명사 | 휴**밀**리
+16 | [25-2] | sincerity | 성실함, 진심 | 명사 | 신**세**러티
+17 | [25-2] | frugality | 검소함, 절약 | 명사 | 프루**갤**러티
+18 | [25-2] | punctuality | 시간엄수, 시간을 잘 지키는 것 | 명사 | 펑츄**앨**러티
+[25-3] Preliminary investigations indicate that some, if not all, of the clients' money, ______ to be $6 million in total, has found its way into unquoted companies and property purchases./believed
+19 | [25-3] | preliminary | 예비의, 초기의 | 형용사 | 프릴리**미**너리
+20 | [25-3] | investigation | 조사, 수사 | 명사 | 인베스티**게**이션
+21 | [25-3] | indicate | 나타내다, 보여주다, 시사하다 | 동사 | **인**디케이트
+22 | [25-3] | unquoted | 비상장인 | 형용사 | 언**쿼**티드
+23 | [25-3] | property | 부동산 | 명사 | **프**라퍼티
+24 | [25-3] | purchase | 구매 | 명사 | **펄**처스
+25 | [25-3] | if not all | 어쩌면 전부 일수있는 | 숙어 | 이프 낫 올
+26 | [25-3] | believe A to be B | A가 B라고 여기다 | 숙어 | 빌리브 에이 투 비 비
+27 | [25-3] | find one's way into | ~흘러들어가다 | 숙어 | 파운드 원스 웨이 인투`;
+
+let passages=[];
+let words=[];
+let currentPassage=null;
+let currentWord=null;
+let wordMode="word";
+let wordQuizList=[];
+let wordQuizIndex=-1;
+let rangeStart="";
+let rangeEnd="";
+let selectedRangeKeys=new Set();
+let todayWrongKeys=new Set();
+const TODAY_KEY="englishMasterWrongToday";
+
+const $=id=>document.getElementById(id);
+
+
+function displayPronunciation(pron){
+  return String(pron || "")
+    .split(/\s*\+\s*/)[0]
+    .trim();
+}
+
+function esc(v){
+return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+function parse(text){
+passages=[];
+words=[];
+const lines=String(text||"").split(/\r?\n/);
+
+for(const raw of lines){
+  const line=raw
+    .replace(/^\uFEFF/,"")
+    .replace(/[\u200B-\u200D\u2060]/g,"")
+    .trim();
+
+  if(!line) continue;
+
+  // 본문 형식:
+  // \[25-2] In the business world, \_\_\_\_\_\_\_\_ .../punctuality
+  // 실제 MD에서는 [ 와 _ 앞에 백슬래시가 붙어 있을 수 있음.
+  const pm=line.match(/^\\?\[\s*(\d{2}-\d+)\s*\\?\]\s*(.+?)\/\s*([^/]+?)\s*$/);
+
+  if(pm){
+    const passageText=pm[2]
+      .replace(/\\_/g,"_")
+      .replace(/\\([[\]])/g,"$1")
+      .trim();
+
+    passages.push({
+      key:pm[1],
+      text:passageText,
+      answer:pm[3].trim()
+    });
+    continue;
+  }
+
+  // 단어 형식:
+  // 14 | \[25-2] | highly | 매우... | 부사 | **하**일리
+  const wm=line.match(
+    /^\d+\s*\|\s*\\?\[\s*(\d{2}-\d+)\s*\\?\]\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*(.+)$/
+  );
+
+  if(wm){
+    words.push({
+      key:wm[1],
+      word:wm[2].trim(),
+      meaning:wm[3].trim(),
+      pos:wm[4].trim(),
+      pron:wm[5].trim()
+    });
+  }
+}
+
+updateStats();
+}
+function updateStats(){
+$("passageCount").textContent=passages.length;
+$("wordCount").textContent=words.length;
+}
+
+function loadData(text,name){
+  setAppStarted(true);
+parse(text);
+loadTodayWrong();
+loadStressTodayWrong();
+renderWrongNote();
+$("fileName").textContent=name||"자료";
+
+localStorage.setItem("englishMasterData",JSON.stringify({text:String(text),name:name||"자료"}));
+showScreen("uploadPanel");
+}
+
+const APP_SCREENS=["savedPanel","uploadPanel","modePanel","passagePanel","wordPanel"];
+function showScreen(id){
+  APP_SCREENS.forEach(x=>{
+    const el=$(x);
+    if(!el)return;
+    el.classList.remove("active");
+    el.classList.add("hidden");
+  });
+  const hero=document.querySelector(".hero");
+  if(hero) hero.style.display="";
+  const target=$(id);
+  if(target){
+    target.classList.remove("hidden");
+    target.classList.add("active");
+  }
+  window.scrollTo(0,0);
+}
+function showPanel(id){
+  showScreen(id);
+}
+
+function setAppStarted(started){
+  const title=$("homeTitle");
+  const desc=$("homeDescription");
+  const actions=$("homeActions");
+  const stats=$("homeStats");
+  if(title) title.style.display=started ? "none" : "";
+  if(desc) desc.style.display=started ? "none" : "";
+  if(actions) actions.style.display=started ? "none" : "";
+  if(stats) stats.style.display=started ? "" : "none";
+}
+
+function showHome(){
+  setAppStarted(false);
+  showScreen("homeScreen");
+}
+
+
+function setPassageNavActive(id){
+  ["randomBtn","chooseBtn","stressBtn"].forEach(x=>{
+    const el=$(x);
+    if(el) el.classList.toggle("active-select",x===id);
+  });
+}
+
+function showStressPanel(){
+  showPanel("passagePanel");
+  const choose=$("chooseArea");
+  const quiz=$("passageQuiz");
+  const stress=$("stressArea");
+  if(choose) choose.classList.add("hidden");
+  if(quiz) quiz.classList.add("hidden");
+  if(stress) stress.classList.remove("hidden");
+
+  loadStressTodayWrong();
+  renderStressTodayWrong();
+  renderStressKeys();
+  $("stressTodayWrongBtn").classList.remove("active-select");
+  $("stressTodayWrongList").classList.add("hidden");
+
+  const practice=$("passageStressPractice");
+  const practiceQuiz=$("passageStressQuiz");
+  if(practice) practice.classList.add("hidden");
+  if(practiceQuiz) practiceQuiz.innerHTML="";
+}
+
+function renderStressKeys(){
+const keys=[...new Set(passages.map(p=>p.key))].sort((a,b)=>wordKeyValue(a)-wordKeyValue(b));
+$("stressKeyGrid").innerHTML=keys.length
+?keys.map(k=>`<button type="button" class="secondary stress-keybtn" data-key="${esc(k)}">${esc(k)}</button>`).join("")
+:"<p class='muted'>이 파일에서 본문 번호를 찾지 못했습니다.</p>";
+$("stressPassageList").innerHTML="";
+document.querySelectorAll(".stress-keybtn").forEach(btn=>{
+btn.addEventListener("click",()=>{
+  document.querySelectorAll(".stress-keybtn").forEach(b=>b.classList.remove("active-select"));
+  btn.classList.add("active-select");
+  showStressPassagesForKey(btn.dataset.key);
+});
+});
+}
+
+function showStressPassagesForKey(key){
+  const items=passages.filter(p=>p.key===key);
+  const p=items[0];
+
+  if(!p){
+    $("stressPassageList").innerHTML=
+      '<div class="notice">선택한 본문을 찾을 수 없습니다.</div>';
+    $("passageStressPractice").classList.add("hidden");
+    return;
+  }
+
+  // 번호를 누르는 즉시 강세 연습을 시작합니다.
+  $("stressPassageList").innerHTML="";
+  $("passageStressPractice").classList.remove("hidden");
+  renderPassageStressPractice(p);
+}
+
+
+function renderKeys(){
+const keys=[...new Set(passages.map(p=>p.key))].sort((a,b)=>wordKeyValue(a)-wordKeyValue(b));
+
+if(!keys.length){
+$("keyGrid").innerHTML="<p class='muted'>이 파일에서 본문 번호를 찾지 못했습니다.</p>";
+$("passageList").innerHTML="";
+return;
+}
+
+$("keyGrid").innerHTML=keys.map(k=>
+`<button type="button" class="secondary keybtn" data-key="${esc(k)}">${esc(k)}</button>`
+).join("");
+
+$("passageList").innerHTML="";
+
+document.querySelectorAll("#keyGrid .keybtn").forEach(btn=>{
+btn.addEventListener("click",()=>{
+  document.querySelectorAll("#keyGrid .keybtn").forEach(b=>b.classList.remove("active-select"));
+  btn.classList.add("active-select");
+  showPassagesForKey(btn.dataset.key);
+});
+});
+}
+
+function showPassagesForKey(key){
+const items=passages.filter(p=>p.key===key);
+
+$("passageList").innerHTML=items.map((p,i)=>`
+<div class="item passage-choice" data-index="${passages.indexOf(p)}">
+  <b>[${esc(p.key)}]</b>
+  <div>${esc(p.text)}</div>
+
+  <div class="row" style="margin-top:16px;align-items:center;gap:8px;flex-wrap:wrap">
+    <button type="button"
+            class="passage-answer-btn inline-answer-btn"
+            data-index="${passages.indexOf(p)}"
+            style="display:inline-block!important;visibility:visible!important;opacity:1!important">
+      정답 보기
+    </button>
+    <button type="button"
+            class="passage-word-list-btn secondary"
+            data-index="${passages.indexOf(p)}">
+      단어보기
+    </button>
+    <input type="text"
+           class="passage-word-search"
+           data-index="${passages.indexOf(p)}"
+           placeholder="궁금한 단어 검색"
+           style="width:180px;max-width:100%;box-sizing:border-box">
+    <button type="button"
+            class="passage-word-search-btn secondary"
+            data-index="${passages.indexOf(p)}">
+      검색
+    </button>
+  </div>
+
+  <div class="passage-inline-answer feedback hidden"
+       data-answer-index="${passages.indexOf(p)}"
+       style="margin-top:12px"></div>
+  <div class="passage-word-search-result hidden"
+       data-word-search-index="${passages.indexOf(p)}"
+       style="margin-top:12px"></div>
+  <div class="passage-word-info hidden"
+       data-word-info-index="${passages.indexOf(p)}"
+       style="margin-top:12px"></div>
+</div>`).join("");
+
+document.querySelectorAll(".passage-choice").forEach(el=>{
+  el.addEventListener("click",function(e){
+    if(e.target.closest(".inline-answer-btn")) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const p=passages[Number(this.dataset.index)];
+    openPassage(p);
+  });
+});
+
+
+function passageWordInfoHTML(w){
+  const parts=getStressParts(w.pron,w.word);
+  const stress=parts && parts.noStress ? "강세 없음" : (parts ? parts.stressed : "정보 없음");
+  return `
+    <div class="item" style="margin-top:8px">
+      <b>${esc(w.word)}</b>
+      <div style="margin-top:6px">뜻: ${esc(w.meaning)}</div>
+      <div style="margin-top:4px">발음: ${esc(displayPronunciation(w.pron).replace(/\*\*/g,""))}</div>
+      <div style="margin-top:4px">강세: <b>${esc(stress)}</b></div>
+    </div>`;
+}
+
+function showPassageWordList(index){
+  const p=passages[index];
+  const box=document.querySelector('.passage-word-info[data-word-info-index="'+index+'"]');
+  if(!box)return;
+
+  // 단어보기가 이미 열려 있으면 다시 눌렀을 때 닫습니다.
+  if(!box.classList.contains("hidden")){
+    box.classList.add("hidden");
+    return;
+  }
+
+  const list=words.filter(w=>w.key===p.key);
+  box.classList.remove("hidden");
+  if(!list.length){
+    box.innerHTML='<div class="notice">이 본문에 연결된 단어 자료가 없습니다.</div>';
+    return;
+  }
+  box.innerHTML=`
+    <div class="notice"><b>[${esc(p.key)}]</b> 본문의 단어 ${list.length}개</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+      ${list.map(passageWordInfoHTML).join("")}
+    </div>`;
+}
+
+function searchPassageWord(index){
+  const input=document.querySelector('.passage-word-search[data-index="'+index+'"]');
+  const box=document.querySelector('.passage-word-search-result[data-word-search-index="'+index+'"]');
+  if(!input || !box)return;
+
+  const query=normalize(input.value);
+  box.classList.remove("hidden");
+
+  if(!query){
+    box.innerHTML='<div class="notice">검색할 단어를 입력하세요.</div>';
+    return;
+  }
+
+  // 검색은 전체 학습자료의 단어에서 찾고, 정확히 일치하는 단어를 우선합니다.
+  const exact=words.filter(w=>normalize(w.word)===query);
+  const partial=words.filter(w=>normalize(w.word).includes(query));
+  const list=exact.length ? exact : partial;
+
+  if(!list.length){
+    box.innerHTML=`<div class="notice">"${esc(input.value)}" 단어를 찾을 수 없습니다.</div>`;
+    return;
+  }
+
+  box.innerHTML=`
+    <div class="notice">검색 결과 ${list.length}개</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+      ${list.map(passageWordInfoHTML).join("")}
+    </div>`;
+
+}
+
+document.querySelectorAll(".inline-answer-btn").forEach(btn=>{
+  btn.addEventListener("click",function(e){
+    e.preventDefault();
+    e.stopPropagation();
+
+    const index=Number(this.dataset.index);
+    const p=passages[index];
+    const answerBox=document.querySelector(
+      '.passage-inline-answer[data-answer-index="'+index+'"]'
+    );
+
+    answerBox.classList.remove("hidden");
+    answerBox.innerHTML="<span class='ok'>정답</span><br><strong>"+esc(p.answer)+"</strong>";
+  });
+});
+
+document.querySelectorAll(".passage-word-list-btn").forEach(btn=>{
+  btn.addEventListener("click",function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    showPassageWordList(Number(this.dataset.index));
+  });
+});
+
+document.querySelectorAll(".passage-word-search-btn").forEach(btn=>{
+  btn.addEventListener("click",function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    searchPassageWord(Number(this.dataset.index));
+  });
+});
+
+document.querySelectorAll(".passage-word-search").forEach(input=>{
+  input.addEventListener("click",e=>e.stopPropagation());
+  input.addEventListener("keydown",e=>{
+    if(e.key==="Enter"){
+      e.preventDefault();
+      e.stopPropagation();
+      searchPassageWord(Number(input.dataset.index));
+    }
+  });
+});
+}
+
+
+let passageStressWords=[], passageStressIndex=0, passageStressCorrect=0, passageStressPassage=null, passageStressWrong=[], passageStressRetake=false;
+let stressTodayWrong=[];
+
+
+function todayDateKey(){
+  const d=new Date();
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,"0");
+  const day=String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${day}`;
+}
+
+function loadStressTodayWrong(){
+  try{
+    const saved=JSON.parse(localStorage.getItem("englishMasterStressWrongToday")||"null");
+    if(saved && saved.date===todayDateKey() && Array.isArray(saved.items)){
+      stressTodayWrong=saved.items;
+    }else{
+      stressTodayWrong=[];
+      localStorage.setItem("englishMasterStressWrongToday",JSON.stringify({
+        date:todayDateKey(),items:[]
+      }));
+    }
+  }catch(e){
+    stressTodayWrong=[];
+  }
+}
+
+function saveStressTodayWrong(){
+  localStorage.setItem("englishMasterStressWrongToday",JSON.stringify({
+    date:todayDateKey(),
+    items:stressTodayWrong
+  }));
+}
+
+function addStressTodayWrong(w){
+  const exists=stressTodayWrong.some(x=>x.key===w.key && x.word===w.word);
+  if(!exists){
+    stressTodayWrong.push({key:w.key,word:w.word});
+    saveStressTodayWrong();
+  }
+}
+
+function clearStressTodayWrong(){
+  // 메모리와 localStorage를 모두 즉시 비웁니다.
+  stressTodayWrong=[];
+  try{
+    localStorage.removeItem("englishMasterStressWrongToday");
+    localStorage.setItem("englishMasterStressWrongToday", JSON.stringify({
+      date:todayDateKey(),
+      items:[]
+    }));
+  }catch(e){}
+  const box=$("stressTodayWrongList");
+  if(box){
+    box.classList.remove("hidden");
+    box.innerHTML='<div class="notice">오늘 틀린 강세 문제가 없습니다.</div>';
+  }
+}
+
+function renderStressTodayWrong(){
+  const box=$("stressTodayWrongList");
+  if(!box)return;
+
+  if(!stressTodayWrong.length){
+    box.innerHTML='<div class="notice">오늘 틀린 강세 문제가 없습니다.</div>';
+    return;
+  }
+
+  const groups={};
+  stressTodayWrong.forEach(item=>{
+    if(!groups[item.key])groups[item.key]=[];
+    groups[item.key].push(item);
+  });
+
+  box.innerHTML=`
+    <div class="notice" style="margin-bottom:10px">
+      오늘 틀린 문제 <b>${stressTodayWrong.length}개</b>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+    ${Object.keys(groups).sort((a,b)=>wordKeyValue(a)-wordKeyValue(b)).map(key=>`
+      <div class="item">
+        <b>[${esc(key)}]</b>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+          ${groups[key].map(x=>`
+            <div class="item" style="width:100%;box-sizing:border-box">
+              <b>${esc(x.word)}</b>
+            </div>
+          `).join("")}
+        </div>
+        <button type="button" class="secondary stress-wrong-review-btn"
+                data-review-key="${esc(key)}" style="margin-top:10px">
+          ${esc(key)} 오답 다시 시험
+        </button>
+      </div>
+    `).join("")}
+    </div>`;
+
+  document.querySelectorAll(".stress-wrong-review-btn").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      const key=btn.dataset.reviewKey;
+      const p=passages.find(x=>x.key===key);
+      if(!p)return;
+      const wrongSet=new Set(stressTodayWrong.filter(x=>x.key===key).map(x=>x.word));
+      const reviewWords=passageStressCandidates(p).filter(w=>wrongSet.has(w.word));
+      $("passageStressPractice").classList.remove("hidden");
+      renderPassageStressPractice(p,reviewWords);
+      $("passageStressPractice").scrollIntoView({behavior:"smooth",block:"start"});
+    });
+  });
+}
+
+function passageStressCandidates(p){
+  // 본문에 실제로 등장하는 단어만 찾는 것이 아니라,
+  // 학습자료에서 같은 본문 번호에 배정된 단어를 모두 사용합니다.
+  // 따라서 25-1에 등록된 13개 단어라면 13개가 모두 출제됩니다.
+  const seen=new Set(), out=[];
+  words.forEach(w=>{
+    const key=w.key+"|"+w.word;
+    if(seen.has(key)) return;
+    if(w.key===p.key){
+      out.push(w);
+      seen.add(key);
+    }
+  });
+  return out;
+}
+
+function renderPassageStressPractice(p, reviewWords=null){
+  // 선택한 본문 자체를 강세 연습 화면 위에 먼저 보여줍니다.
+  passageStressPassage=p;
+  const passageTextBox=$("stressSelectedPassage");
+  if(passageTextBox){
+    passageTextBox.innerHTML=`
+      <div class="question">[${esc(p.key)}] 본문</div>
+      <div style="font-size:18px;line-height:1.9;margin-top:10px">${esc(p.text)}</div>`;
+    passageTextBox.classList.remove("hidden");
+  }
+
+  // 처음 시험은 전체 단어를 랜덤으로, 오답 재시험은 틀린 단어만 랜덤으로 출제합니다.
+  passageStressRetake=Array.isArray(reviewWords);
+  passageStressWords=shuffleArray(reviewWords || passageStressCandidates(p));
+  passageStressIndex=0;
+  passageStressCorrect=0;
+  if(!passageStressRetake) passageStressWrong=[];
+  renderPassageStressQuestion();
+}
+
+function renderPassageStressQuestion(){
+  const box=$("passageStressQuiz");
+  if(!box)return;
+  if(!passageStressWords.length){
+    box.innerHTML='<div class="notice">이 본문에 연결된 단어가 없습니다.</div>';
+    return;
+  }
+  if(passageStressIndex>=passageStressWords.length){
+    const wrongCount=passageStressWrong.length;
+    if(passageStressRetake){
+      box.innerHTML=`
+        <div class="notice">
+          <b>오답 재시험 완료!</b><br>
+          ${passageStressWords.length}문제 중 ${passageStressCorrect}문제 정답
+        </div>
+        <button type="button" id="passageStressRetryWrong" ${wrongCount?"":"disabled"} style="margin-top:10px">
+          ${wrongCount ? "틀린 단어 다시 시험하기" : "모두 맞혔습니다"}
+        </button>`;
+      if(wrongCount){
+        $("passageStressRetryWrong").onclick=()=>{
+          const wrongWords=[...passageStressWrong];
+          passageStressWrong=[];
+          passageStressRetake=true;
+          passageStressWords=shuffleArray(wrongWords);
+          passageStressIndex=0;
+          passageStressCorrect=0;
+          renderPassageStressQuestion();
+        };
+      }
+    }else{
+      box.innerHTML=`
+        <div class="notice">
+          <b>강세 연습 완료!</b><br>
+          ${passageStressWords.length}문제 중 ${passageStressCorrect}문제 정답
+        </div>
+        ${wrongCount ? `
+          <button type="button" id="passageStressReviewWrong" style="margin-top:10px">
+            틀린 단어 다시 시험하기 (${wrongCount}개)
+          </button>` : `
+          <div class="notice" style="margin-top:10px">모든 문제를 맞혔습니다!</div>`}`;
+      if(wrongCount){
+        $("passageStressReviewWrong").onclick=()=>{
+          const wrongWords=[...passageStressWrong];
+          passageStressWrong=[];
+          renderPassageStressPractice(passageStressPassage, wrongWords);
+        };
+      }
+    }
+    return;
+  }
+  const w=passageStressWords[passageStressIndex], parts=getStressParts(w.pron,w.word);
+  if(!parts){
+    box.innerHTML=`<div class="question">${passageStressIndex+1} / ${passageStressWords.length}</div>
+      <p><b>${esc(w.word)}</b></p>
+      <div class="notice">이 단어의 강세 정보가 자료에 없습니다.</div>
+      <button type="button" id="skipPassageStress">다음 단어</button>`;
+    $("skipPassageStress").onclick=()=>{passageStressIndex++;renderPassageStressQuestion();};
+    return;
+  }
+
+  box.innerHTML=`
+    <div class="question">${passageStressIndex+1} / ${passageStressWords.length}</div>
+    <p><b>${esc(w.word)}</b></p>
+    <div class="muted">발음: ${esc(displayPronunciation(w.pron).replace(/\*\*/g,""))}</div>
+    <div class="muted" style="margin-top:8px">강세가 오는 음절을 <b>하나 이상</b> 선택하세요.</div>
+    <div class="stress-syllables" style="margin-top:10px">
+      ${parts.units.map((u,i)=>`<button type="button" class="stress-syllable" data-pstress="${i}">${esc(u)}</button>`).join("")}
+    </div>
+    <div style="margin-top:10px"><button type="button" class="stress-syllable" data-pstress="-1">강세 없음</button></div>
+    <div class="row" style="margin-top:12px"><button type="button" id="checkPassageStress">정답 확인</button></div>
+    <div id="passageStressFeedback" class="feedback hidden"></div>`;
+
+  const selected=new Set();
+  const buttons=[...document.querySelectorAll("[data-pstress]")];
+  buttons.forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      const v=Number(btn.dataset.pstress);
+      if(v===-1){
+        selected.clear();
+        buttons.forEach(x=>x.classList.remove("selected"));
+        btn.classList.add("selected");
+        selected.add(-1);
+        return;
+      }
+      selected.delete(-1);
+      const noStress=buttons.find(x=>Number(x.dataset.pstress)===-1);
+      if(noStress)noStress.classList.remove("selected");
+      if(selected.has(v)){
+        selected.delete(v); btn.classList.remove("selected");
+      }else{
+        selected.add(v); btn.classList.add("selected");
+      }
+    });
+  });
+
+  $("checkPassageStress").onclick=()=>{
+    if(!selected.size){
+      $("passageStressFeedback").classList.remove("hidden");
+      $("passageStressFeedback").innerHTML='<span class="bad">강세 위치를 하나 이상 선택하세요.</span>';
+      return;
+    }
+    const answer=[...selected];
+    const chosenNoStress=answer.length===1 && answer[0]===-1;
+    const ok=chosenNoStress ? parts.noStress : sameIndexSet(answer,parts.correctIndices);
+
+    buttons.forEach(btn=>{
+      const v=Number(btn.dataset.pstress);
+      btn.classList.remove("correct","wrong");
+      if(parts.noStress && v===-1)btn.classList.add("correct");
+      if(!parts.noStress && parts.correctIndices.includes(v))btn.classList.add("correct");
+      if((v===-1 && chosenNoStress && !parts.noStress) || (v!==-1 && selected.has(v) && !parts.correctIndices.includes(v)))btn.classList.add("wrong");
+    });
+
+    const fb=$("passageStressFeedback"); fb.classList.remove("hidden");
+    if(ok){
+      passageStressCorrect++;
+      fb.innerHTML='<span class="ok">정답입니다!</span>';
+    }else{
+      // 현재 시험의 오답 + 오늘의 오답에 모두 기록합니다.
+      if(!passageStressWrong.some(x=>x.key===w.key && x.word===w.word)){
+        passageStressWrong.push(w);
+      }
+      addStressTodayWrong(w);
+      renderStressTodayWrong();
+
+      const answerText=parts.noStress ? "강세 없음" : parts.correctIndices.map(i=>parts.units[i]).join("");
+      fb.innerHTML=`<span class="bad">오답입니다.</span><br>정답: <b>${esc(answerText)}</b>`;
+    }
+    $("checkPassageStress").textContent="다음 단어";
+    $("checkPassageStress").onclick=()=>{passageStressIndex++;renderPassageStressQuestion();};
+  };
+}
+
+function openPassage(p){
+currentPassage=p;
+$("chooseArea").classList.add("hidden");
+$("passageQuiz").classList.remove("hidden");
+
+$("passageQuiz").innerHTML=`
+<div class="quiz">
+  <div class="question">[${esc(p.key)}] 본문 읽기</div>
+  <div style="font-size:18px;line-height:1.9;margin:14px 0">${esc(p.text)}</div>
+
+  <div style="margin-top:20px">
+    <button type="button" id="showPassageAnswer" class="passage-answer-btn"
+            style="display:inline-block!important;visibility:visible!important;opacity:1!important">
+      정답 보기
+    </button>
+  </div>
+
+  <div id="passageAnswer" class="feedback hidden" style="margin-top:14px"></div>
+
+
+  <div class="row" style="margin-top:14px">
+    <button type="button" id="passageDone">완료</button>
+    <button type="button" id="nextPassage" class="gray">다음 랜덤</button>
+  </div>
+  <div id="passageFeedback" class="feedback hidden" style="margin-top:10px"></div>
+</div>`;
+
+$("showPassageAnswer").addEventListener("click",function(e){
+  e.preventDefault();
+  e.stopPropagation();
+  const box=$("passageAnswer");
+  box.classList.remove("hidden");
+  box.innerHTML="<span class='ok'>정답</span><br><strong>"+esc(p.answer)+"</strong>";
+});
+
+$("passageDone").addEventListener("click",function(e){
+  e.preventDefault();
+  e.stopPropagation();
+  $("passageFeedback").classList.remove("hidden");
+  $("passageFeedback").innerHTML="<span class='ok'>연습 완료!</span>";
+});
+
+$("nextPassage").addEventListener("click",function(e){
+  e.preventDefault();
+  e.stopPropagation();
+  randomPassage();
+});
+
+}
+function randomPassage(){
+if(!passages.length){alert("본문 데이터가 없습니다.");return;}
+const p=passages[Math.floor(Math.random()*passages.length)];
+openPassage(p);
+}
+
+function showPassagePanel(){
+  showPanel("passagePanel");
+  const choose=$("chooseArea");
+  const quiz=$("passageQuiz");
+  const stress=$("stressArea");
+  if(choose) choose.classList.add("hidden");
+  if(quiz) quiz.classList.add("hidden");
+  if(stress) stress.classList.add("hidden");
+}
+
+function wordKeyValue(k){
+const m=String(k).match(/^(\d{2})-(\d+)$/);
+return m?Number(m[1])*1000+Number(m[2]):NaN;
+}
+
+function todayDateKey(){
+const d=new Date();
+return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
+
+function loadTodayWrong(){
+try{
+  const saved=JSON.parse(localStorage.getItem(TODAY_KEY)||"{}");
+  todayWrongKeys=new Set(saved.date===todayDateKey() ? (saved.keys||[]) : []);
+}catch(e){
+  todayWrongKeys=new Set();
+}
+}
+
+function saveTodayWrong(){
+localStorage.setItem(TODAY_KEY,JSON.stringify({
+  date:todayDateKey(),
+  keys:[...todayWrongKeys]
+}));
+}
+
+function renderWrongNote(){
+const box=$("wrongNoteArea");
+if(!box)return;
+
+const list=words.filter(w=>todayWrongKeys.has(w.key+"|"+w.word));
+
+if(!list.length){
+  box.innerHTML=`
+  <div style="margin-top:14px">
+    <button type="button" id="todayWrongBtn" class="secondary">
+      오늘의 오답
+    </button>
+  </div>`;
+  $("todayWrongBtn").addEventListener("click",showTodayWrong);
+  return;
+}
+
+box.innerHTML=`
+<div style="margin-top:14px">
+  <button type="button" id="todayWrongBtn" class="secondary">
+    오늘의 오답 (${list.length})
+  </button>
+</div>`;
+
+$("todayWrongBtn").addEventListener("click",showTodayWrong);
+}
+
+function showTodayWrong(){
+const box=$("wrongNoteArea");
+const list=words.filter(w=>todayWrongKeys.has(w.key+"|"+w.word));
+
+if(!list.length){
+  box.innerHTML=`
+  <div style="margin-top:14px">
+    <button type="button" id="todayWrongBtn" class="secondary">오늘의 오답</button>
+  </div>
+  <div class="notice" style="margin-top:10px">오늘 틀린 문제가 없습니다.</div>`;
+  $("todayWrongBtn").addEventListener("click",showTodayWrong);
+  return;
+}
+
+box.innerHTML=`
+<div class="notice" style="margin-top:14px">
+  오늘 틀린 문제 <strong>${list.length}</strong>개
+</div>
+<div class="list">
+${list.map(w=>`
+  <div class="item">
+    <b>[${esc(w.key)}] ${esc(w.word)}</b>
+    <div>${esc(w.meaning)}</div>
+  </div>`).join("")}
+</div>
+<div class="row" style="margin-top:10px">
+  <button type="button" id="wrongNoteQuiz">오답 다시 시험</button>
+  <button type="button" id="hideWrongNote" class="gray">닫기</button>
+  <button type="button" id="clearWrongNote" class="gray">오늘 오답노트 비우기</button>
+</div>`;
+
+$("wrongNoteQuiz").addEventListener("click",startWrongNoteQuiz);
+$("hideWrongNote").addEventListener("click",renderWrongNote);
+$("clearWrongNote").addEventListener("click",()=>{
+  todayWrongKeys.clear();
+  saveTodayWrong();
+  renderWrongNote();
+});
+}
+
+function startWrongNoteQuiz(){
+const list=words.filter(w=>todayWrongKeys.has(w.key+"|"+w.word));
+if(!list.length){
+  alert("오늘 오답노트에 문제가 없습니다.");
+  return;
+}
+currentWord=list[Math.floor(Math.random()*list.length)];
+$("wordQuiz").scrollIntoView({behavior:"smooth",block:"center"});
+renderWordQuestion();
+}
+
+function renderWordRange(){
+const keys=[...new Set(words.map(w=>w.key))]
+  .sort((a,b)=>wordKeyValue(a)-wordKeyValue(b));
+
+const grid=$("wordRangeGrid");
+if(!grid)return;
+
+if(!keys.length){
+  grid.innerHTML="<p class='muted'>선택할 문제가 없습니다.</p>";
+  return;
+}
+
+grid.innerHTML=keys.map(k=>{
+  const selected=selectedRangeKeys.has(k);
+  return `<button type="button"
+    class="keybtn ${selected?"active-select":"secondary"}"
+    data-range-key="${esc(k)}">
+    ${esc(k)}
+  </button>`;
+}).join("");
+
+grid.querySelectorAll("[data-range-key]").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    const key=btn.dataset.rangeKey;
+    if(selectedRangeKeys.has(key)) selectedRangeKeys.delete(key);
+    else selectedRangeKeys.add(key);
+    renderWordRange();
+    updateRangeBadge();
+    startWordQuiz();
+  });
+});
+}
+
+function updateRangeBadge(){
+const keys=[...selectedRangeKeys].sort((a,b)=>wordKeyValue(a)-wordKeyValue(b));
+$("rangeBadge").textContent=keys.length
+  ? "범위: "+keys.join(", ")
+  : "범위: 전체";
+}
+
+function getFilteredWords(){
+if(!selectedRangeKeys.size) return words;
+return words.filter(w=>selectedRangeKeys.has(w.key));
+}
+
+function shuffleArray(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function startWordQuiz(){
+  const list=getFilteredWords();
+  wordQuizList=shuffleArray(list);
+  wordQuizIndex=-1;
+  newWord();
+}
+
+function setWordMode(m){
+  wordMode=m;
+  $("wordTab").className=m==="word"?"active-select":"secondary";
+  $("meaningTab").className=m==="meaning"?"active-select":"secondary";
+  $("pronTab").className=m==="pron"?"active-select":"secondary";
+  $("modeBadge").textContent="모드: "+({word:"단어",meaning:"뜻",pron:"발음"}[m]);
+  startWordQuiz();
+}
+
+function newWord(){
+  if(!wordQuizList.length || wordQuizIndex>=wordQuizList.length-1){
+    if(wordQuizIndex>=0 && wordQuizList.length){
+      $("wordQuiz").innerHTML=`
+        <div class="notice">
+          <b>시험 완료!</b><br>
+          총 ${wordQuizList.length}개 단어를 모두 풀었습니다.
+        </div>
+        <button type="button" id="restartWordQuiz">다시 시험하기</button>`;
+      $("restartWordQuiz").onclick=startWordQuiz;
+      return;
+    }
+    const list=getFilteredWords();
+    if(!list.length){
+      $("wordQuiz").innerHTML="<p class='muted'>현재 범위에 해당하는 단어가 없습니다.</p>";
+      return;
+    }
+    wordQuizList=shuffleArray(list);
+    wordQuizIndex=-1;
+  }
+
+  wordQuizIndex++;
+  currentWord=wordQuizList[wordQuizIndex];
+  renderWordQuestion();
+}
+
+
+function getStressParts(pron, word=""){
+  // 발음 데이터에서 "+" 뒤는 보충 설명이므로 강세 연습에서는 완전히 제외합니다.
+  const raw=displayPronunciation(pron).trim();
+  const cleanRaw=raw.replace(/\s+/g,"");
+
+  // 사용자가 지정한 강세 예외.
+  const overrides={
+    diseases:[1,2]
+  };
+
+  // 자료에 "강세 없음"이 명시된 경우
+  if(/(?:강세\s*없음|no\s*stress)/i.test(raw)){
+    const clean=raw.replace(/\s*(강세\s*없음|no\s*stress)\s*/ig,"").trim();
+    return {
+      units:[...clean.replace(/\s+/g,"")].filter(Boolean),
+      correctIndices:[],
+      stressed:"강세 없음",
+      noStress:true
+    };
+  }
+
+  // **...**가 있으면 그 부분을 강세로 사용합니다.
+  const m=raw.match(/^\s*(.*?)\*\*(.+?)\*\*(.*?)\s*$/);
+
+  if(!m){
+    const units=[...cleanRaw].filter(Boolean);
+
+    if(overrides[String(word||"").toLowerCase()]){
+      const idx=overrides[String(word||"").toLowerCase()];
+      return {
+        units,
+        correctIndices:idx,
+        stressed:idx.map(i=>units[i]).join(""),
+        noStress:false
+      };
+    }
+
+    // 강세 표시가 없는 단어는 "강세 없음"이 정답입니다.
+    return {
+      units,
+      correctIndices:[],
+      stressed:"강세 없음",
+      noStress:true
+    };
+  }
+
+  const units=[];
+  const boldIndices=[];
+
+  const add=(text,isBold)=>{
+    [...String(text).replace(/\s+/g,"")].forEach(ch=>{
+      if(ch){
+        if(isBold) boldIndices.push(units.length);
+        units.push(ch);
+      }
+    });
+  };
+
+  add(m[1],false);
+  add(m[2],true);
+  add(m[3],false);
+
+  let correctIndices=boldIndices;
+  const override=overrides[String(word||"").toLowerCase()];
+  if(override) correctIndices=override;
+
+  return {
+    units,
+    correctIndices,
+    stressed:correctIndices.map(i=>units[i]).join(""),
+    noStress:false
+  };
+}
+
+function sameIndexSet(a,b){
+  const x=[...a].map(Number).sort((m,n)=>m-n);
+  const y=[...b].map(Number).sort((m,n)=>m-n);
+  return x.length===y.length && x.every((v,i)=>v===y[i]);
+}
+
+function renderStressQuestion(w){
+const parts=getStressParts(w.pron,w.word);
+
+if(!parts){
+  return `
+  <div class="question">이 단어의 발음에서 강세가 오는 음절을 선택하세요.</div>
+  <p><b>${esc(w.word)}</b></p>
+  <div class="stress-guide">
+    <span class="bad">이 단어의 발음 자료에 강세 표시(**...**)가 없어 강세 정답을 확인할 수 없습니다.</span>
+  </div>`;
+}
+
+return `
+<div class="question">이 단어의 발음에서 <b>강세가 오는 음절</b>을 선택하세요.</div>
+<p><b>${esc(w.word)}</b></p>
+<div class="stress-guide">
+  <div class="muted">발음: ${esc(displayPronunciation(w.pron).replace(/\*\*/g,""))}</div>
+  <div class="stress-syllables" id="stressSyllables">
+    ${parts.units.map((u,i)=>`
+      <button type="button" class="stress-syllable"
+              data-stress-index="${i}">${esc(u)}</button>
+    `).join("")}
+  </div>
+  <div style="margin-top:10px">
+    <button type="button" class="stress-syllable" data-stress-index="-1">강세 없음</button>
+  </div>
+  <input type="hidden" id="stressAnswer" value="">
+</div>`;
+}
+
+function renderWordQuestion(){
+const w=currentWord;
+const progress=`<div class="question" style="font-weight:700;margin-bottom:10px">${wordQuizIndex+1} / ${wordQuizList.length}</div>`;
+let html="";
+if(wordMode==="word"){
+html=progress+`<div class="question">뜻을 보고 영어 단어를 입력하세요.</div>
+<p>${esc(w.meaning)}</p>
+<input class="answer" id="wordAnswer" autocomplete="off" placeholder="영어 단어">
+`;
+}else if(wordMode==="meaning"){
+html=progress+`<div class="question">영어 단어를 보고 뜻을 입력하세요.</div>
+<p><b>${esc(w.word)}</b></p>
+<input class="answer" id="wordAnswer" autocomplete="off" placeholder="뜻">
+`;
+}else{
+html=progress+`<div class="question">다음 영어 단어의 <b>발음</b>을 입력하세요.</div>
+<p><b>${esc(w.word)}</b></p>
+<input class="answer" id="wordAnswer" autocomplete="off" placeholder="한글 발음">
+<div id="stressStage" class="hidden"></div>`;
+}
+html+=`<div class="row" style="margin-top:10px">
+<button type="button" id="checkWord">정답 확인</button>
+<button type="button" id="nextWord" class="gray">다음 문제</button>
+</div>
+<div id="wordFeedback" class="feedback hidden"></div>`;
+$("wordQuiz").innerHTML=html;
+
+$("checkWord").addEventListener("click",checkWord);
+$("nextWord").addEventListener("click",newWord);
+
+if(wordMode==="pron"){
+  $("wordAnswer").addEventListener("keydown",e=>{if(e.key==="Enter")checkWord();});
+}else{
+  $("wordAnswer").addEventListener("keydown",e=>{if(e.key==="Enter")checkWord();});
+}
+}
+
+function normalize(s){
+return String(s||"").toLowerCase().replace(/\s+/g,"").replace(/[.,!?'"“”‘’~()]/g,"");
+}
+
+function checkWord(){
+const input=normalize($("wordAnswer").value);
+const w=currentWord;
+let correct="";
+let ok=false;
+
+if(wordMode==="word"){
+correct=w.word;
+ok=input===normalize(w.word);
+}else if(wordMode==="meaning"){
+correct=w.meaning;
+const meanings=w.meaning.split(/[,，/]/).map(normalize).filter(Boolean);
+ok=meanings.some(m=>input===m);
+}else{
+const parts=getStressParts(w.pron,w.word);
+const correctPron=displayPronunciation(w.pron).replace(/\*\*/g,"");
+const expectedPron=normalize(correctPron);
+
+/* 1단계: 발음 입력 */
+if(!$("stressAnswer")){
+  correct=correctPron;
+
+  // 표기 차이(예: 임팩팅/임펙팅)도 같은 발음으로 인정합니다.
+  const pronunciationVariants=new Set([
+    expectedPron,
+    expectedPron.replace(/팩/g,"펙"),
+    expectedPron.replace(/펙/g,"팩")
+  ]);
+  ok=pronunciationVariants.has(input);
+
+  if(!ok){
+    todayWrongKeys.add(w.key+"|"+w.word);
+    saveTodayWrong();
+    renderWrongNote();
+
+    $("wordFeedback").classList.remove("hidden");
+    $("wordFeedback").innerHTML=
+      `<span class="bad">발음이 틀렸습니다.</span><br>정답 발음: ${esc(correct)}<br><small>오늘 오답노트에 저장했습니다.</small>`;
+    return;
+  }
+
+  $("wordFeedback").classList.remove("hidden");
+  $("wordFeedback").innerHTML=
+    `<span class="ok">발음 정답!</span><br>이제 <b>강세가 오는 음절</b>을 선택하세요.`;
+
+  const stage=$("stressStage");
+  stage.classList.remove("hidden");
+
+  if(!parts){
+    stage.innerHTML=`
+      <div class="stress-guide">
+        <div><b>2단계: 강세 정보가 없습니다.</b></div>
+        <div class="muted" style="margin-top:6px">이 단어의 학습자료에 강세 표시가 없습니다.</div>
+      </div>`;
+    $("checkWord").textContent="다음 문제";
+    $("checkWord").onclick=newWord;
+    return;
+  }
+
+  stage.innerHTML=`
+    <div class="stress-guide">
+      <div><b>2단계: 강세가 오는 음절을 하나 이상 선택하거나, 강세가 없으면 '강세 없음'을 선택하세요.</b></div>
+      <div class="muted" style="margin-top:6px">발음: ${esc(displayPronunciation(w.pron).replace(/\*\*/g,""))}</div>
+      <div class="stress-syllables" id="stressSyllables">
+        ${parts.units.map((u,i)=>`
+          <button type="button" class="stress-syllable"
+                  data-stress-index="${i}">${esc(u)}</button>
+        `).join("")}
+      </div>
+      <div style="margin-top:10px">
+        <button type="button" class="stress-syllable" data-stress-index="-1">강세 없음</button>
+      </div>
+      <input type="hidden" id="stressAnswer" value="">
+    </div>`;
+
+  const stressButtons=[...document.querySelectorAll("#stressSyllables .stress-syllable")];
+  const noStressButton=document.querySelector("#stressStage [data-stress-index='-1']");
+  const selectedStress=new Set();
+
+  const syncStressAnswer=()=>{
+    $("stressAnswer").value=[...selectedStress].sort((a,b)=>a-b).join(",");
+  };
+
+  stressButtons.forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      const idx=Number(btn.dataset.stressIndex);
+      if(selectedStress.has(idx)){
+        selectedStress.delete(idx);
+        btn.classList.remove("selected");
+      }else{
+        selectedStress.add(idx);
+        btn.classList.add("selected");
+      }
+      if(selectedStress.size && noStressButton){
+        noStressButton.classList.remove("selected");
+      }
+      syncStressAnswer();
+    });
+  });
+
+  if(noStressButton){
+    noStressButton.addEventListener("click",()=>{
+      selectedStress.clear();
+      stressButtons.forEach(x=>x.classList.remove("selected"));
+      noStressButton.classList.toggle("selected");
+      if(noStressButton.classList.contains("selected")) selectedStress.add(-1);
+      syncStressAnswer();
+    });
+  }
+
+  $("checkWord").textContent="강세 정답 확인";
+  return;
+}
+
+/* 2단계: 강세 선택 */
+const selectedRaw=$("stressAnswer") ? $("stressAnswer").value : "";
+const selectedIndices=selectedRaw
+  ? selectedRaw.split(",").filter(x=>x!=="").map(Number)
+  : [];
+const correctIndices=Array.isArray(parts.correctIndices)
+  ? parts.correctIndices.map(Number)
+  : (parts.correctIndex!=null ? [Number(parts.correctIndex)] : []);
+
+correct=parts.stressed;
+const selectedNoStress=selectedIndices.length===1 && selectedIndices[0]===-1;
+ok=parts.noStress
+  ? selectedNoStress
+  : selectedIndices.length>0 && sameIndexSet(selectedIndices,correctIndices);
+
+document.querySelectorAll("#stressStage .stress-syllable").forEach(btn=>{
+  const idx=Number(btn.dataset.stressIndex);
+  btn.classList.remove("correct","wrong");
+  if(parts.noStress && idx===-1)btn.classList.add("correct");
+  if(!parts.noStress && idx>=0 && correctIndices.includes(idx))btn.classList.add("correct");
+  if(selectedIndices.includes(idx) && (
+      (parts.noStress && idx!==-1) ||
+      (!parts.noStress && idx>=0 && !correctIndices.includes(idx))
+    ))btn.classList.add("wrong");
+});
+
+if(!ok){
+  todayWrongKeys.add(w.key+"|"+w.word);
+  saveTodayWrong();
+  renderWrongNote();
+}
+}
+
+$("wordFeedback").classList.remove("hidden");
+
+if(!ok){
+  todayWrongKeys.add(w.key+"|"+w.word);
+  saveTodayWrong();
+  renderWrongNote();
+}
+
+if(wordMode==="pron"){
+  const parts=getStressParts(w.pron,w.word);
+  const stressText=parts
+    ? (parts.noStress
+        ? "강세 없음"
+        : parts.correctIndices.map(i=>parts.units[i]).join(""))
+    : correct;
+
+  $("wordFeedback").innerHTML=ok
+  ?`<span class="ok">강세까지 정답입니다!</span><br>강세: ${esc(stressText)}`
+  :`<span class="bad">강세가 틀렸습니다.</span><br>강세 정답: ${esc(stressText)}<br><small>오늘 오답노트에 저장했습니다.</small>`;
+}else{
+  $("wordFeedback").innerHTML=ok
+  ?`<span class="ok">정답입니다!</span><br>정답: ${esc(correct)}`
+  :`<span class="bad">오답입니다.</span><br>정답: ${esc(correct)}<br><small>오늘 오답노트에 저장했습니다.</small>`;
+}
+}
+
+function showWordPanel(){
+showPanel("wordPanel");
+loadTodayWrong();
+renderWordRange();
+updateRangeBadge();
+renderWrongNote();
+startWordQuiz();
+}
+
+const SAVED_FILES_MANIFEST="data/files.json";
+
+function showSavedFilesMessage(message){
+  const box=$("savedFileMessage");
+  if(!box)return;
+  box.textContent=message;
+  box.classList.remove("hidden");
+}
+
+async function loadSavedFileList(){
+  const list=$("savedFileList");
+  const message=$("savedFileMessage");
+  if(!list)return;
+  list.innerHTML="";
+  if(message){
+    message.classList.add("hidden");
+    message.textContent="";
+  }
+  showScreen("savedPanel");
+  list.innerHTML='<p class="muted">학습 자료 목록을 불러오는 중...</p>';
+
+  try{
+    const response=await fetch(SAVED_FILES_MANIFEST,{cache:"no-store"});
+    if(!response.ok) throw new Error("manifest");
+    const files=await response.json();
+    if(!Array.isArray(files)) throw new Error("format");
+
+    const mdFiles=files.filter(item=>item && typeof item.file==="string" && item.file.toLowerCase().endsWith(".md"));
+    if(!mdFiles.length){
+      list.innerHTML="";
+      showSavedFilesMessage("등록된 MD 학습 자료가 없습니다. data/files.json에 파일을 추가하세요.");
+      return;
+    }
+
+    list.innerHTML="";
+    mdFiles.forEach(item=>{
+      const button=document.createElement("button");
+      button.type="button";
+      button.className="saved-file-item";
+      button.textContent=item.name || item.file.split("/").pop();
+      button.addEventListener("click",()=>loadSavedStudyFile(item,button));
+      list.appendChild(button);
+    });
+  }catch(error){
+    list.innerHTML="";
+    showSavedFilesMessage("저장된 학습 자료 목록을 불러오지 못했습니다. GitHub에 data/files.json이 있는지 확인하세요.");
+  }
+}
+
+async function loadSavedStudyFile(item,button){
+  const filePath=String(item.file||"");
+  if(!filePath)return;
+  button.disabled=true;
+  button.textContent="불러오는 중...";
+  try{
+    const response=await fetch(filePath,{cache:"no-store"});
+    if(!response.ok) throw new Error("file");
+    const text=await response.text();
+    const fileName=item.name || filePath.split("/").pop();
+    loadData(text,fileName);
+    showScreen("modePanel");
+  }catch(error){
+    button.disabled=false;
+    button.textContent=item.name || filePath.split("/").pop();
+    alert("학습 자료를 불러오지 못했습니다. 파일 경로를 확인하세요.");
+  }
+}
+
+$("startBtn").addEventListener("click",()=>{
+  setAppStarted(true);
+  showScreen("uploadPanel");
+});
+
+$("uploadBack").addEventListener("click",()=>{
+  showHome();
+});
+
+$("uploadStartBtn").addEventListener("click",()=>{
+  if(!passages.length && !words.length){
+    alert("먼저 학습 자료를 불러오세요.");
+    return;
+  }
+  showScreen("modePanel");
+});
+
+$("modeBack").addEventListener("click",()=>{
+  showScreen("uploadPanel");
+});
+
+$("savedBtn").addEventListener("click",()=>{
+  setAppStarted(true);
+  loadSavedFileList();
+});
+
+$("savedBack").addEventListener("click",()=>{
+  showHome();
+});
+
+$("fileInput").addEventListener("change",async e=>{
+const file=e.target.files&&e.target.files[0];
+if(!file)return;
+try{loadData(await file.text(),file.name);}
+catch(err){alert("파일을 읽는 중 오류가 발생했습니다.");}
+});
+
+
+$("passageBtn").addEventListener("click",showPassagePanel);
+$("wordBtn").addEventListener("click",showWordPanel);
+
+$("randomBtn").addEventListener("click",()=>{
+  setPassageNavActive("randomBtn");
+  $("stressArea").classList.add("hidden");
+  $("chooseArea").classList.add("hidden");
+  randomPassage();
+});
+$("stressBtn").addEventListener("click",function(e){
+  e.preventDefault();
+  setPassageNavActive("stressBtn");
+  showStressPanel();
+});
+
+$("stressTodayWrongBtn").addEventListener("click",()=>{
+  const box=$("stressTodayWrongList");
+  const opened=box.classList.toggle("hidden");
+  $("stressTodayWrongBtn").classList.toggle("active-select",!opened);
+  if(!opened) renderStressTodayWrong();
+});
+$("clearStressTodayWrongBtn").addEventListener("click",()=>{
+  clearStressTodayWrong();
+});
+
+$("chooseBtn").addEventListener("click",()=>{
+setPassageNavActive("chooseBtn");
+$("stressArea").classList.add("hidden");
+$("passageQuiz").classList.add("hidden");
+$("chooseArea").classList.remove("hidden");
+renderKeys();
+});
+
+$("passageBack").addEventListener("click",()=>{
+showScreen("modePanel");
+});
+
+$("wordBack").addEventListener("click",()=>{
+showScreen("modePanel");
+});
+
+$("wordTab").addEventListener("click",()=>setWordMode("word"));
+$("meaningTab").addEventListener("click",()=>setWordMode("meaning"));
+$("pronTab").addEventListener("click",()=>setWordMode("pron"));
+
+$("selectAllRange").addEventListener("click",()=>{
+selectedRangeKeys=new Set([...new Set(words.map(w=>w.key))]);
+renderWordRange();
+updateRangeBadge();
+newWord();
+});
+
+$("clearRange").addEventListener("click",()=>{
+selectedRangeKeys.clear();
+renderWordRange();
+updateRangeBadge();
+newWord();
+});
+
+
+
+loadTodayWrong();
+parse("");
+APP_SCREENS.forEach(x=>$(x).classList.add("hidden"));
+})();
+</script>
+</body>
+</html>
