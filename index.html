@@ -80,6 +80,230 @@ p{line-height:1.75}.muted{color:var(--muted)}
   margin-top:0 !important;
 }
 </style>
+
+<style id="sakura-theme">
+:root{
+  --blue:#e86a9b;
+  --blue-dark:#c94f7f;
+  --bg:#fff7fb;
+  --line:#f2d9e4;
+  --text:#352633;
+  --muted:#7f6876;
+  --pink-soft:#fff0f6;
+  --pink-pale:#fff7fa;
+  --pink-mid:#f8d9e6;
+  --pink-green:#e8f5ef;
+}
+
+/* 전체 분위기 */
+html{scroll-behavior:smooth}
+body{
+  background:
+    radial-gradient(circle at 10% 8%, rgba(248,185,211,.32) 0 80px, transparent 81px),
+    radial-gradient(circle at 92% 18%, rgba(251,214,229,.35) 0 110px, transparent 111px),
+    linear-gradient(180deg,#fffafd 0%,#fff7fb 52%,#fff9fc 100%);
+  color:var(--text);
+}
+body::before,
+body::after{
+  content:"";
+  position:fixed;
+  width:18px;height:24px;
+  background:linear-gradient(145deg,#f7b8d0 0%,#f3a9c5 72%,#e98caf 100%);
+  border-radius:80% 20% 80% 20%;
+  opacity:.48;
+  pointer-events:none;
+  z-index:0;
+  box-shadow:
+    0 120px 0 -2px rgba(245,169,199,.38),
+    70px 260px 0 1px rgba(247,190,214,.35),
+    -35px 430px 0 -1px rgba(238,158,192,.3);
+}
+body::before{top:90px;left:4%;transform:rotate(28deg)}
+body::after{top:150px;right:5%;transform:rotate(-32deg) scale(.85)}
+
+.app{position:relative;z-index:1;max-width:1080px;padding:24px 18px 70px}
+
+/* 시작 화면 / 상단 헤더 */
+.hero,.panel{
+  background:rgba(255,255,255,.92);
+  border:1px solid var(--line);
+  box-shadow:0 12px 32px rgba(164,87,119,.10);
+  backdrop-filter:blur(8px);
+}
+.hero{
+  border-radius:26px;
+  padding:30px;
+}
+h1{
+  color:#402433;
+  letter-spacing:-2.5px;
+}
+h2,h3{color:#472837}
+p{color:var(--muted)}
+.muted{color:var(--muted)!important}
+
+/* 버튼 */
+button{
+  background:linear-gradient(135deg,#ed78a6,#df5f92);
+  color:#fff;
+  border-radius:13px;
+  padding:11px 17px;
+  box-shadow:0 5px 12px rgba(223,95,146,.18);
+  transition:transform .15s ease,box-shadow .15s ease,background .15s ease;
+}
+button:hover:not(:disabled){
+  transform:translateY(-1px);
+  box-shadow:0 7px 16px rgba(223,95,146,.24);
+}
+button.secondary{
+  background:#fff0f6;
+  color:#c94f7f;
+  border:1px solid #f4d4e1;
+  box-shadow:none;
+}
+button.gray{
+  background:#f4eef2;
+  color:#66515e;
+  box-shadow:none;
+}
+button.active-select,
+.active-select{
+  background:linear-gradient(135deg,#df5f92,#c94f7f)!important;
+  color:#fff!important;
+  border-color:#c94f7f!important;
+  box-shadow:0 6px 14px rgba(201,79,127,.24)!important;
+}
+button:disabled{box-shadow:none}
+
+/* 카드 / 통계 */
+.panel{
+  border-radius:22px;
+  padding:24px;
+  margin-top:18px;
+}
+.stats{gap:12px;margin-top:20px}
+.stat{
+  background:linear-gradient(145deg,#fff8fb,#fff0f6);
+  border:1px solid #f3dbe5;
+  border-radius:16px;
+  padding:15px;
+}
+.stat small{color:#8b6c7b}
+.stat strong{color:#4b2938}
+
+/* 선택 영역 */
+.notice{
+  background:#fff0f6;
+  color:#a8466e;
+  border:1px solid #f5d7e3;
+}
+.badge{
+  background:#fff0f6;
+  color:#9b5873;
+  border:1px solid #f1d9e4;
+}
+.keygrid{gap:11px}
+.keybtn{
+  background:#fff5f8;
+  color:#c94f7f;
+  border:1px solid #f0d6e1;
+  box-shadow:none;
+}
+.keybtn:hover:not(:disabled){background:#ffe7f0}
+.keybtn.active-select{
+  background:linear-gradient(135deg,#df5f92,#c94f7f)!important;
+  color:#fff!important;
+}
+
+/* 파일 / 목록 */
+.filebox{
+  border-color:#e9b9cd;
+  background:#fffafd;
+}
+.saved-file-item{
+  background:#fff0f6;
+  color:#b74a75;
+  border:1px solid #f2d4e0;
+}
+.saved-file-item:hover{background:#ffe4ee}
+
+/* 문제 카드 */
+.quiz{
+  background:linear-gradient(145deg,#fff9fb,#fff3f7);
+  border:1px solid #f1d8e3;
+}
+.question{color:#412735}
+.answer{
+  border-color:#e7cad6;
+  background:#fff;
+  color:#3e2a35;
+}
+.feedback{
+  background:#fff;
+  border-color:#efd9e3;
+}
+.passage-answer-btn{
+  background:linear-gradient(135deg,#ed78a6,#df5f92)!important;
+}
+
+/* 본문 / 일반 리스트 */
+.item{
+  border-color:#efd9e3;
+  background:#fff;
+}
+.item:hover{background:#fff4f8}
+.list{gap:10px}
+
+/* 강세 연습 */
+.stress-guide{
+  border-color:#efd9e3;
+  background:#fff7fa;
+}
+.stress-syllable{
+  border-color:#ecd2dd;
+  background:#fff;
+  color:#4d3040;
+}
+.stress-syllable:hover{background:#fff0f6}
+.stress-syllable.selected{
+  background:#df5f92;
+  color:#fff;
+  border-color:#df5f92;
+}
+.stress-syllable.correct{
+  background:#e8f7ef;
+  color:#27704d;
+  border-color:#9dd5b8;
+}
+.stress-syllable.wrong{
+  background:#fff0f2;
+  color:#b33d4d;
+  border-color:#f1aab5;
+}
+
+/* 입력창 */
+.range input,
+input.answer{
+  border-color:#e7cbd7;
+}
+input:focus{
+  outline:none;
+  border-color:#df7fa3;
+  box-shadow:0 0 0 3px rgba(223,127,163,.13);
+}
+
+/* 모바일 */
+@media(max-width:700px){
+  .app{padding:14px 12px 50px}
+  .hero{padding:24px 18px}
+  .panel{padding:18px}
+  h1{font-size:38px}
+  h2{font-size:24px}
+  button{padding:10px 14px}
+}
+</style>
+
 </head>
 <body>
 <div class="app">
