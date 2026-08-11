@@ -553,7 +553,13 @@ let rangeStart="";
 let rangeEnd="";
 let selectedRangeKeys=new Set();
 let todayWrongKeys=new Set();
+let todayWrongTypes=new Map();
+let reviewQueue=[];
+let reviewIndex=-1;
+let reviewActive=false;
+let revivalItems=[];
 const TODAY_KEY="englishMasterWrongToday";
+const REVIVAL_KEY="englishMasterRevivalToday";
 
 const $=id=>document.getElementById(id);
 
@@ -628,6 +634,7 @@ function loadData(text,name){
   setAppStarted(true);
 parse(text);
 loadTodayWrong();
+loadTodayRevival();
 loadStressTodayWrong();
 renderWrongNote();
 $("fileName").textContent=name||"자료";
@@ -1295,19 +1302,155 @@ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.g
 }
 
 function loadTodayWrong(){
-try{
-  const saved=JSON.parse(localStorage.getItem(TODAY_KEY)||"{}");
-  todayWrongKeys=new Set(saved.date===todayDateKey() ? (saved.keys||[]) : []);
-}catch(e){
-  todayWrongKeys=new Set();
+  try{
+    const saved=JSON.parse(localStorage.getItem(TODAY_KEY)||"{}");
+    if(saved.date===todayDateKey()){
+      todayWrongKeys=new Set(saved.keys||[]);
+      todayWrongTypes=new Map();
+      const typeMap=saved.types && typeof saved.types==="object" ? saved.types : {};
+      todayWrongKeys.forEach(key=>{
+        const types=Array.isArray(typeMap[key]) ? typeMap[key] : [];
+        // 이전 버전 오답 데이터에는 오답 유형 정보가 없으므로 단어로 표시합니다.
+        todayWrongTypes.set(key,new Set(types.length ? types : ["word"]));
+      });
+    }else{
+      todayWrongKeys=new Set();
+      todayWrongTypes=new Map();
+    }
+  }catch(e){
+    todayWrongKeys=new Set();
+    todayWrongTypes=new Map();
+  }
 }
+
+function loadTodayRevival(){
+  try{
+    const saved=JSON.parse(localStorage.getItem(REVIVAL_KEY)||"{}");
+    if(saved.date===todayDateKey() && Array.isArray(saved.items)){
+      revivalItems=saved.items;
+    }else{
+      revivalItems=[];
+    }
+  }catch(e){ revivalItems=[]; }
+}
+
+function saveTodayRevival(){
+  try{
+    localStorage.setItem(REVIVAL_KEY, JSON.stringify({
+      date:todayDateKey(),
+      items:revivalItems
+    }));
+  }catch(e){}
+}
+
+function addTodayRevival(w,type){
+  const key=w.key+"|"+w.word;
+  const exists=revivalItems.some(x=>x.key===key && x.type===type);
+  if(!exists){
+    revivalItems.push({key, word:w.word, meaning:w.meaning, pron:w.pron, type});
+    saveTodayRevival();
+  }
+}
+
+function removeTodayWrongType(w,type){
+  const key=w.key+"|"+w.word;
+  const set=todayWrongTypes.get(key);
+  if(set){
+    set.delete(type);
+    if(!set.size){
+      todayWrongTypes.delete(key);
+      todayWrongKeys.delete(key);
+    }
+  }else{
+    todayWrongKeys.delete(key);
+  }
+  saveTodayWrong();
+}
+
+let todayRevivalOpen=false;
+
+function renderTodayRevival(openState=false){
+  const box=$('todayRevivalArea');
+  if(!box)return;
+
+  todayRevivalOpen=!!openState;
+  const count=revivalItems.length;
+
+  // 기본 상태에서는 '오늘의 패자부활' 버튼만 보여줍니다.
+  if(!todayRevivalOpen){
+    box.innerHTML=`
+      <div style="margin-top:14px">
+        <button type="button" id="todayRevivalBtn" class="secondary">
+          오늘의 패자부활${count ? ` (${count})` : ''}
+        </button>
+      </div>`;
+    $('todayRevivalBtn').addEventListener('click',()=>renderTodayRevival(true));
+    return;
+  }
+
+  // 펼친 상태에서는 목록과 비우기/닫기 버튼을 보여줍니다.
+  if(!count){
+    box.innerHTML=`
+      <div class="notice" style="margin-top:14px">오늘의 패자부활 항목이 없습니다.</div>
+      <div class="row" style="margin-top:10px">
+        <button type="button" id="clearTodayRevival" class="gray" disabled>오늘의 패자부활 비우기</button>
+        <button type="button" id="closeTodayRevival" class="gray">닫기</button>
+      </div>`;
+    $('clearTodayRevival').addEventListener('click',clearTodayRevival);
+    $('closeTodayRevival').addEventListener('click',()=>renderTodayRevival(false));
+    return;
+  }
+
+  box.innerHTML=`
+    <div class="notice" style="margin-top:14px">
+      오늘의 패자부활 <strong>${count}</strong>개
+    </div>
+    <div class="list" style="margin-top:10px">
+      ${revivalItems.map(x=>{
+        const pron=displayPronunciation(x.pron).replace(/\*\*/g,'');
+        const label={word:'단어',meaning:'뜻',pron:'발음'}[x.type]||'';
+        return `<div class="item">
+          <b>[${esc(x.key.split('|')[0])}]</b>
+          <div style="margin-top:7px">단어: ${esc(x.word)}</div>
+          <div style="margin-top:5px">뜻: ${esc(x.meaning)}</div>
+          <div style="margin-top:5px">발음: ${esc(pron)}</div>
+          <div class="muted" style="margin-top:7px">${esc(label)} 오답을 맞혀 패자부활로 이동</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button type="button" id="clearTodayRevival" class="gray">오늘의 패자부활 비우기</button>
+      <button type="button" id="closeTodayRevival" class="gray">닫기</button>
+    </div>`;
+  $('clearTodayRevival').addEventListener('click',clearTodayRevival);
+  $('closeTodayRevival').addEventListener('click',()=>renderTodayRevival(false));
+}
+function clearTodayRevival(){
+  revivalItems=[];
+  saveTodayRevival();
+  renderTodayRevival(false);
 }
 
 function saveTodayWrong(){
-localStorage.setItem(TODAY_KEY,JSON.stringify({
-  date:todayDateKey(),
-  keys:[...todayWrongKeys]
-}));
+  const types={};
+  todayWrongTypes.forEach((set,key)=>{ types[key]=[...set]; });
+  localStorage.setItem(TODAY_KEY,JSON.stringify({
+    date:todayDateKey(),
+    keys:[...todayWrongKeys],
+    types
+  }));
+}
+
+function recordTodayWrong(w,type){
+  const key=w.key+"|"+w.word;
+  todayWrongKeys.add(key);
+  if(!todayWrongTypes.has(key)) todayWrongTypes.set(key,new Set());
+  todayWrongTypes.get(key).add(type);
+  saveTodayWrong();
+}
+
+function getTodayWrongTypes(w){
+  return todayWrongTypes.get(w.key+"|"+w.word) || new Set();
 }
 
 function renderWrongNote(){
@@ -1322,8 +1465,10 @@ if(!list.length){
     <button type="button" id="todayWrongBtn" class="secondary">
       오늘의 오답
     </button>
-  </div>`;
+  </div>
+  <div id="todayRevivalArea"></div>`;
   $("todayWrongBtn").addEventListener("click",showTodayWrong);
+  renderTodayRevival();
   return;
 }
 
@@ -1332,9 +1477,11 @@ box.innerHTML=`
   <button type="button" id="todayWrongBtn" class="secondary">
     오늘의 오답 (${list.length})
   </button>
-</div>`;
+</div>
+<div id="todayRevivalArea"></div>`;
 
 $("todayWrongBtn").addEventListener("click",showTodayWrong);
+renderTodayRevival();
 }
 
 function showTodayWrong(){
@@ -1346,8 +1493,10 @@ if(!list.length){
   <div style="margin-top:14px">
     <button type="button" id="todayWrongBtn" class="secondary">오늘의 오답</button>
   </div>
-  <div class="notice" style="margin-top:10px">오늘 틀린 문제가 없습니다.</div>`;
+  <div class="notice" style="margin-top:10px">오늘 틀린 문제가 없습니다.</div>
+  <div id="todayRevivalArea"></div>`;
   $("todayWrongBtn").addEventListener("click",showTodayWrong);
+  renderTodayRevival();
   return;
 }
 
@@ -1356,36 +1505,139 @@ box.innerHTML=`
   오늘 틀린 문제 <strong>${list.length}</strong>개
 </div>
 <div class="list">
-${list.map(w=>`
+${list.map(w=>{
+  const types=getTodayWrongTypes(w);
+  const pron=displayPronunciation(w.pron).replace(/\*\*/g,"");
+  const wordHtml=types.has("word") ? `<strong>${esc(w.word)}</strong>` : esc(w.word);
+  const meaningHtml=types.has("meaning") ? `<strong>${esc(w.meaning)}</strong>` : esc(w.meaning);
+  const pronHtml=types.has("pron") ? `<strong>${esc(pron)}</strong>` : esc(pron);
+  return `
   <div class="item">
-    <b>[${esc(w.key)}] ${esc(w.word)}</b>
-    <div>${esc(w.meaning)}</div>
-  </div>`).join("")}
+    <b>[${esc(w.key)}]</b>
+    <div style="margin-top:7px">단어: ${wordHtml}</div>
+    <div style="margin-top:5px">뜻: ${meaningHtml}</div>
+    <div style="margin-top:5px">발음: ${pronHtml}</div>
+  </div>`;
+}).join("")}
 </div>
 <div class="row" style="margin-top:10px">
   <button type="button" id="wrongNoteQuiz">오답 다시 시험</button>
   <button type="button" id="hideWrongNote" class="gray">닫기</button>
   <button type="button" id="clearWrongNote" class="gray">오늘 오답노트 비우기</button>
-</div>`;
+</div>
+<div id="todayRevivalArea"></div>`;
 
 $("wrongNoteQuiz").addEventListener("click",startWrongNoteQuiz);
 $("hideWrongNote").addEventListener("click",renderWrongNote);
 $("clearWrongNote").addEventListener("click",()=>{
   todayWrongKeys.clear();
+  todayWrongTypes.clear();
   saveTodayWrong();
   renderWrongNote();
 });
+renderTodayRevival();
 }
 
 function startWrongNoteQuiz(){
-const list=words.filter(w=>todayWrongKeys.has(w.key+"|"+w.word));
-if(!list.length){
-  alert("오늘 오답노트에 문제가 없습니다.");
-  return;
+  const queue=[];
+  words.forEach(w=>{
+    const types=getTodayWrongTypes(w);
+    ["word","meaning","pron"].forEach(type=>{
+      if(types.has(type)) queue.push({w,type});
+    });
+  });
+  if(!queue.length){
+    alert("오늘 오답노트에 문제가 없습니다.");
+    return;
+  }
+  reviewQueue=shuffleArray(queue);
+  reviewIndex=-1;
+  reviewActive=true;
+  nextReviewQuestion();
 }
-currentWord=list[Math.floor(Math.random()*list.length)];
-$("wordQuiz").scrollIntoView({behavior:"smooth",block:"center"});
-renderWordQuestion();
+
+function nextReviewQuestion(){
+  reviewIndex++;
+  if(reviewIndex>=reviewQueue.length){
+    reviewActive=false;
+    const box=$("wordQuiz");
+    box.innerHTML=`<div class="notice"><b>오답 다시 시험 완료!</b><br>틀렸던 항목을 모두 다시 시험했습니다.</div>`;
+    renderWrongNote();
+    return;
+  }
+  const item=reviewQueue[reviewIndex];
+  currentWord=item.w;
+  renderReviewQuestion(item);
+}
+
+function renderReviewQuestion(item){
+  const w=item.w, type=item.type;
+  const label={word:"단어",meaning:"뜻",pron:"발음"}[type];
+  let prompt="", question="";
+  if(type==="word"){
+    prompt="뜻을 보고 영어 단어를 입력하세요.";
+    question=`<p>${esc(w.meaning)}</p>`;
+  }else if(type==="meaning"){
+    prompt="영어 단어를 보고 뜻을 입력하세요.";
+    question=`<p><b>${esc(w.word)}</b></p>`;
+  }else{
+    prompt="영어 단어의 발음을 입력하세요.";
+    question=`<p><b>${esc(w.word)}</b></p>`;
+  }
+  $("wordQuiz").innerHTML=`
+    <div class="question" style="font-weight:700;margin-bottom:10px">오답 다시 시험 · ${reviewIndex+1} / ${reviewQueue.length}</div>
+    <div class="notice" style="margin-bottom:12px">이번 문제: <b>${esc(label)}</b></div>
+    <div class="question">${prompt}</div>
+    ${question}
+    <input class="answer" id="wordAnswer" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" enterkeyhint="go" inputmode="text" placeholder="${esc(label)}">
+    <div class="row" style="margin-top:10px">
+      <button type="button" id="checkReviewWord">정답 확인</button>
+      <button type="button" id="nextReviewWord" class="gray">다음 문제</button>
+    </div>
+    <div id="reviewFeedback" class="feedback hidden"></div>`;
+
+  const input=$("wordAnswer");
+  const check=()=>checkReviewAnswer();
+  $("checkReviewWord").addEventListener("click",check);
+  $("nextReviewWord").addEventListener("click",nextReviewQuestion);
+  input.addEventListener("keydown",e=>{
+    if(e.key==="Enter"){
+      e.preventDefault();
+      checkReviewAnswer();
+    }
+  });
+  setTimeout(()=>{try{input.focus({preventScroll:true});}catch(_){input.focus();}},0);
+}
+
+function checkReviewAnswer(){
+  if(!reviewActive || reviewIndex<0 || !reviewQueue[reviewIndex]) return;
+  const item=reviewQueue[reviewIndex], w=item.w, type=item.type;
+  const input=normalize($("wordAnswer")?.value||"");
+  let ok=false, correct="";
+  if(type==="word"){
+    correct=w.word;
+    ok=input===normalize(w.word);
+  }else if(type==="meaning"){
+    correct=w.meaning;
+    ok=w.meaning.split(/[,，/]/).map(normalize).filter(Boolean).some(x=>input===x);
+  }else{
+    correct=displayPronunciation(w.pron).replace(/\*\*/g,"");
+    const variants=new Set([normalize(correct),normalize(correct).replace(/팩/g,"펙"),normalize(correct).replace(/펙/g,"팩")]);
+    ok=variants.has(input);
+  }
+
+  const fb=$("reviewFeedback");
+  fb.classList.remove("hidden");
+  if(ok){
+    addTodayRevival(w,type);
+    removeTodayWrongType(w,type);
+    fb.innerHTML=`<span class="ok">정답입니다!</span><br><small>오늘의 패자부활로 이동했습니다.</small>`;
+    $("checkReviewWord").disabled=true;
+    $("nextReviewWord").textContent="다음 문제";
+    renderTodayRevival();
+  }else{
+    fb.innerHTML=`<span class="bad">오답입니다.</span><br>정답: <b>${esc(correct)}</b>`;
+  }
 }
 
 function renderWordRange(){
@@ -1688,8 +1940,7 @@ if(!$("stressAnswer")){
   ok=pronunciationVariants.has(input);
 
   if(!ok){
-    todayWrongKeys.add(w.key+"|"+w.word);
-    saveTodayWrong();
+    recordTodayWrong(w,"pron");
     renderWrongNote();
 
     $("wordFeedback").classList.remove("hidden");
@@ -1798,8 +2049,7 @@ document.querySelectorAll("#stressStage .stress-syllable").forEach(btn=>{
 });
 
 if(!ok){
-  todayWrongKeys.add(w.key+"|"+w.word);
-  saveTodayWrong();
+  recordTodayWrong(w,"pron");
   renderWrongNote();
 }
 }
@@ -1807,8 +2057,7 @@ if(!ok){
 $("wordFeedback").classList.remove("hidden");
 
 if(!ok){
-  todayWrongKeys.add(w.key+"|"+w.word);
-  saveTodayWrong();
+  recordTodayWrong(w,wordMode==="word" ? "word" : wordMode==="meaning" ? "meaning" : "pron");
   renderWrongNote();
 }
 
@@ -2364,49 +2613,36 @@ html.green-theme .stress-syllable.wrong{
 
 <script id="theme-cycle-handler">
 (function(){
-  const THEMES = ["", "sky-theme", "green-theme"];
-  let themeIndex = 0;
-  let lastTapTimes = [];
+  const THEMES=["","sky-theme","green-theme"];
+  let themeIndex=0;
+  let tapTimes=[];
+  const MAX_GAP=320;
+  const MAX_SEQUENCE=1600;
 
-  function applyTheme(index, save=true){
-    themeIndex = ((index % THEMES.length) + THEMES.length) % THEMES.length;
+  function applyTheme(index){
+    themeIndex=((index%THEMES.length)+THEMES.length)%THEMES.length;
     document.documentElement.classList.remove("sky-theme","green-theme");
-    if(THEMES[themeIndex]) {
-      document.documentElement.classList.add(THEMES[themeIndex]);
-    }
-    // 테마는 현재 페이지에서만 변경되며 저장하지 않습니다.
-    // 새로 접속하거나 새로고침하면 기본 핑크로 시작합니다.
+    if(THEMES[themeIndex]) document.documentElement.classList.add(THEMES[themeIndex]);
   }
 
-  // 첫 진입은 항상 기본 핑크 테마입니다.
-  applyTheme(0, false);
+  // 새로 접속하거나 새로고침하면 항상 기본 핑크 테마에서 시작합니다.
+  applyTheme(0);
 
-  // 더블클릭: 핑크 → 파랑 → 연한 녹색 → 핑크
-  document.addEventListener("dblclick", function(){
-    applyTheme(themeIndex + 1);
-  }, false);
+  // 더블클릭은 테마 변경으로 사용하지 않습니다.
+  // 마우스 클릭/휴대폰 터치 모두 pointerup 하나로만 세어 중복 집계를 막습니다.
+  // 5회 모두 빠르게(각 간격 0.32초 이내, 전체 1.6초 이내) 눌러야 변경됩니다.
+  document.addEventListener("pointerup",function(){
+    const now=Date.now();
+    const last=tapTimes[tapTimes.length-1];
 
-  // 기존 빠른 5회 클릭 기능도 유지한다.
-  document.addEventListener("click", function(){
-    const now = Date.now();
-    lastTapTimes = lastTapTimes.filter(t => now - t < 900);
-    lastTapTimes.push(now);
-    if(lastTapTimes.length >= 5){
-      applyTheme(themeIndex + 1);
-      lastTapTimes = [];
+    if(last && now-last>MAX_GAP) tapTimes=[];
+    tapTimes.push(now);
+
+    if(tapTimes.length===5){
+      if(now-tapTimes[0]<=MAX_SEQUENCE) applyTheme(themeIndex+1);
+      tapTimes=[];
     }
-  }, false);
-
-  document.addEventListener("pointerup", function(e){
-    if(e.pointerType === "mouse") return;
-    const now = Date.now();
-    lastTapTimes = lastTapTimes.filter(t => now - t < 900);
-    lastTapTimes.push(now);
-    if(lastTapTimes.length >= 5){
-      applyTheme(themeIndex + 1);
-      lastTapTimes = [];
-    }
-  }, {passive:true});
+  },{passive:true});
 })();
 </script>
 
@@ -2533,6 +2769,13 @@ html.green-theme .answer{
   color:#315846;
 }
 html.green-theme .feedback{border-color:#cfe9d8}
+/* 녹색 테마에서도 본문 정답 보기 버튼은 녹색으로 표시 */
+html.green-theme .passage-answer-btn{
+  background:linear-gradient(135deg,#72bd8f,#55a978)!important;
+  color:#fff!important;
+  border-color:#55a978!important;
+  box-shadow:0 5px 12px rgba(70,151,99,.18)!important;
+}
 html.green-theme .item{border-color:#cfe9d8}
 html.green-theme .item:hover{background:#f0faf4}
 html.green-theme .stress-guide{
