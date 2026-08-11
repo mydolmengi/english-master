@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>영어 마스타</title>
+<title>영어 마스터</title>
 <style>
 :root{--blue:#2563eb;--bg:#f5f7fb;--line:#e5e7eb;--text:#172033;--muted:#667085}
 *{box-sizing:border-box}
@@ -337,6 +337,59 @@ input:focus{
 }
 </style>
 
+
+<style id="collapse-arrow-only-real">
+#homeScreen.app-started.stats-collapsed{
+  background:transparent !important;
+  background-color:transparent !important;
+  border:0 !important;
+  box-shadow:none !important;
+  outline:0 !important;
+  padding:0 !important;
+  margin:0 !important;
+  min-height:42px !important;
+  height:42px !important;
+  border-radius:0 !important;
+  overflow:visible !important;
+}
+#homeScreen.app-started.stats-collapsed > *{
+  display:none !important;
+}
+#homeScreen.app-started.stats-collapsed > #homeStatsToggle{
+  display:flex !important;
+  position:absolute !important;
+  right:12px !important;
+  bottom:4px !important;
+  width:36px !important;
+  height:36px !important;
+  min-width:36px !important;
+  padding:0 !important;
+  margin:0 !important;
+  background:#fff7fb !important;
+  border:1px solid #efbfd2 !important;
+  border-radius:50% !important;
+  box-shadow:0 4px 12px rgba(180,82,125,.14) !important;
+  color:#d45d8e !important;
+  align-items:center !important;
+  justify-content:center !important;
+  z-index:1001 !important;
+}
+#homeScreen.app-started.stats-collapsed > #homeStatsToggle > span{
+  display:block !important;
+  visibility:visible !important;
+  opacity:1 !important;
+}
+@media(max-width:700px){
+  #homeScreen.app-started.stats-collapsed{
+    min-height:42px !important;
+    height:42px !important;
+  }
+  #homeScreen.app-started.stats-collapsed > #homeStatsToggle{
+    right:10px !important;
+    bottom:3px !important;
+  }
+}
+</style>
 </head>
 <body>
 <div class="app">
@@ -1572,49 +1625,7 @@ $("wordQuiz").innerHTML=html;
 $("checkWord").addEventListener("click",checkWord);
 $("nextWord").addEventListener("click",newWord);
 
-/* 모바일 키보드: 첫 Enter/이동은 정답 확인, 두 번째 Enter/이동은 다음 문제 */
-let mobileEnterStep = 0;
-
-$("wordAnswer").addEventListener("keydown",e=>{
-  if((e.key==="Enter" || e.keyCode===13) && !e.isComposing){
-    e.preventDefault();
-    e.stopImmediatePropagation();
-
-    const input=$("wordAnswer");
-    if(!input) return;
-
-    if(mobileEnterStep===0){
-      /* 1회차: 정답 확인 */
-      mobileEnterStep=1;
-      checkWord();
-
-      requestAnimationFrame(()=>{
-        const el=$("wordAnswer");
-        if(el){
-          el.focus({preventScroll:true});
-          const len=el.value.length;
-          try{el.setSelectionRange(len,len);}catch(_){}
-        }
-      });
-    }else{
-      /* 2회차: 다음 문제 */
-      const next=$("nextWord");
-      if(next && !next.disabled){
-        mobileEnterStep=0;
-        next.click();
-
-        requestAnimationFrame(()=>{
-          const el=$("wordAnswer");
-          if(el){
-            el.focus({preventScroll:true});
-            const len=el.value.length;
-            try{el.setSelectionRange(len,len);}catch(_){}
-          }
-        });
-      }
-    }
-  }
-});
+}
 
 function normalize(s){
 return String(s||"").toLowerCase().replace(/\s+/g,"").replace(/[.,!?'"“”‘’~()]/g,"");
@@ -2064,6 +2075,45 @@ APP_SCREENS.forEach(x=>$(x).classList.add("hidden"));
     }
   }, true);
 })();
+
+/* 모바일 단어시험: Enter/이동 1회=정답 확인, 2회=다음 문제 */
+document.addEventListener("keydown", function(e){
+  if((e.key!=="Enter" && e.keyCode!==13) || e.isComposing) return;
+  const input=e.target;
+  if(!input || input.id!=="wordAnswer") return;
+
+  e.preventDefault();
+  e.stopImmediatePropagation();
+
+  const check=document.getElementById("checkWord");
+  const next=document.getElementById("nextWord");
+  const feedback=document.getElementById("wordFeedback");
+  const stressStage=document.getElementById("stressStage");
+
+  if(!check) return;
+
+  const stressCheck=(check.textContent||"").replace(/\s/g,"").includes("강세정답확인");
+
+  if(stressStage && !stressStage.classList.contains("hidden") && stressCheck){
+    check.click();
+  }else if(feedback && !feedback.classList.contains("hidden")){
+    if(next) next.click();
+    else if((check.textContent||"").replace(/\s/g,"").includes("다음문제")) check.click();
+  }else{
+    check.click();
+  }
+
+  setTimeout(function(){
+    const newInput=document.getElementById("wordAnswer");
+    if(!newInput) return;
+    try{
+      newInput.focus({preventScroll:true});
+      const len=newInput.value.length;
+      newInput.setSelectionRange(len,len);
+    }catch(_){ newInput.focus(); }
+  },50);
+}, true);
+
 </script>
 
 </body>
