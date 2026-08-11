@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>영어 마스터</title>
+<title>영어 마스타</title>
 <style>
 :root{--blue:#2563eb;--bg:#f5f7fb;--line:#e5e7eb;--text:#172033;--muted:#667085}
 *{box-sizing:border-box}
@@ -1572,24 +1572,49 @@ $("wordQuiz").innerHTML=html;
 $("checkWord").addEventListener("click",checkWord);
 $("nextWord").addEventListener("click",newWord);
 
-/* 모바일 키보드의 'Enter/이동'을 누르면 정답 확인을 실행하되,
-   기본 동작으로 입력창이 포커스를 잃거나 키보드가 내려가지 않게 합니다. */
+/* 모바일 키보드: 첫 Enter/이동은 정답 확인, 두 번째 Enter/이동은 다음 문제 */
+let mobileEnterStep = 0;
+
 $("wordAnswer").addEventListener("keydown",e=>{
   if((e.key==="Enter" || e.keyCode===13) && !e.isComposing){
     e.preventDefault();
-    e.stopPropagation();
-    checkWord();
-    requestAnimationFrame(()=>{
-      const input=$("wordAnswer");
-      if(input){
-        input.focus({preventScroll:true});
-        const len=input.value.length;
-        try{input.setSelectionRange(len,len);}catch(_){ }
+    e.stopImmediatePropagation();
+
+    const input=$("wordAnswer");
+    if(!input) return;
+
+    if(mobileEnterStep===0){
+      /* 1회차: 정답 확인 */
+      mobileEnterStep=1;
+      checkWord();
+
+      requestAnimationFrame(()=>{
+        const el=$("wordAnswer");
+        if(el){
+          el.focus({preventScroll:true});
+          const len=el.value.length;
+          try{el.setSelectionRange(len,len);}catch(_){}
+        }
+      });
+    }else{
+      /* 2회차: 다음 문제 */
+      const next=$("nextWord");
+      if(next && !next.disabled){
+        mobileEnterStep=0;
+        next.click();
+
+        requestAnimationFrame(()=>{
+          const el=$("wordAnswer");
+          if(el){
+            el.focus({preventScroll:true});
+            const len=el.value.length;
+            try{el.setSelectionRange(len,len);}catch(_){}
+          }
+        });
       }
-    });
+    }
   }
 });
-}
 
 function normalize(s){
 return String(s||"").toLowerCase().replace(/\s+/g,"").replace(/[.,!?'"“”‘’~()]/g,"");
